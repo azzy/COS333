@@ -1,0 +1,403 @@
+
+<HTML> 
+<HEAD> 
+	<TITLE> PMUNC Website Redesign - Design Document </TITLE>
+</HEAD>
+<BODY>
+<H1>PMUNC Website Redesign - Design Document 
+</H1>
+<H4>Identification: 
+</H4>
+<UL>
+	<LI> Group Member Names: Lalithra
+	Fernando (lfernand@), Kathleen Li (kzli@), Jacob Lewellen
+	(jlewelle@), Sajid Mehmood (smehmood@) 
+	<LI> Project Manager: Sajid Mehmood
+	(smehmood@) 
+	<LI> URL: www.pmunc.org (currently points to old site) 
+</UL>
+<H4>Primary Goal: 
+</H4>
+<P>To automate as much of the pre-Conference coordination and work
+for the Princeton Model United Nations Conference as possible,
+especially coordination between the Conference Managers and the
+Conference Attendees. 
+</P>
+<H4>Overview:
+</H4>
+<P>For our project, we will be redesigning the website and conference
+management software for the Princeton Model United Nations Conference
+(PMUNC). The current PMUNC website provides basic management features
+for the conference, however as the conference has grown to over 1250
+participants, the need for a full redesign to implement some
+fundamentally new features has become evident. 
+</P>
+<P>Every year, PMUNC is attended by 30-50 schools, each with 5-70
+delegates. Princeton staffs the Conference with about 100-125
+University students. The Conference is divided into 20 committees,
+each with different agendas and topics of discussion. Delegates and
+staff members are assigned to one of the 20. The conference lasts
+four days, meaning lodging and food need to be coordinated in
+advance. From this arises a need for a sophisticated database driven
+web application to manage all the various aspects of the conference
+throughout the 5 month period from the opening of registration to the
+conclusion of the conference. Also, as this conference is the primary
+source of income for the Princeton University International Relations
+Council, high production quality, reliability, and appealing design
+are all needed. 
+</P>
+<P>Major aspects of the conference to be managed by the website: 
+</P>
+<UL>
+	<LI> Display of informational content
+	about the conference 
+	<LI> School registration - creation of
+	Faculty Adviser (FA) accounts 
+	<LI> Individual committee pages with
+	topical background information 
+	<LI> Assignment of delegates into
+	committees 
+	<LI> Individual delegate accounts 
+	<LI> FA management of their delegates
+	and progress 
+	<LI> Applications to selective
+	committees 
+	<LI> Basic staff/role management -
+	individual staff accounts with variable privileges 
+	<LI> Rooming assignments 
+</UL>
+<P>The primary enhancements over the previous PMUNC web application
+will be functionality at the individual delegate level. The previous
+website did not have accounts for each delegate, only each school.
+Without knowledge of each delegate, functionality such as committee
+assignments and rooming assignments had to be handled by spreadsheets
+sent via email. One of the aims of this project is to eliminate the
+need for this. 
+</P>
+<H4>User Scenarios:
+</H4>
+<H5>Faculty Advisor - Registration: 
+</H5>
+<P>User arrives at the index page, which is designed to market PMUNC
+as effectively as possible. Should include photos from previous
+conferences, and possibly testimonials. Welcome letter from Charge
+d'Affaires directs user to FAQ and further conference information
+like time line, fees, etc. After user decides that s/he wishes to
+register for PMUNC, they follow a navigation link to the registration
+form. Information such as school name, contact info, desired user
+name/password, number of spots requested is submitted. Input is
+validated and confirmed. User receives email confirmation of the
+received registration. After being reviewed by Conference Management
+(CM), user receives confirmation of official registration and an
+invoice for payment (automatic generation of invoice is a reach
+feature). 
+</P>
+<H5>Faculty Advisor - Delegate Management: 
+</H5>
+<P>N.B. - The actions taken here are likely to take place over
+several sessions. However, there is no reason it could not occur in a
+single session, and it is presented as such for brevity. 
+</P>
+<P>User arrives at the index page, and clicks the log-on link. After
+logging on, user is taken to the FA home page, where the latest
+announcements from CM are displayed. User clicks on &quot;Delegate
+Management.&quot; The delegate view grid is empty. User decides to
+enter his/her delegate list into the web site. User is only required
+to provide the name of the delegate (and optionally email), from
+which a user name, and initial password is automatically generated.
+The remainder of required information about each delegate is likely
+to be inputted by each delegate at initial log-on. However, user may
+also provide this information at initialization of the account by
+switching to a separate view. This information includes: grade,
+contact information, partner (if applicable), committee assignment,
+rooming assignment. Reach feature: Write a script that will take a
+.csv file outputted by MS Excel and update the information in the
+database with the values in the .csv file. User will be given
+instructions on how to format the Excel file and how to save as a
+.csv file. 
+</P>
+<P>Upon completion, user is presented with a link to a printable
+version of the delegate list, containing delegate names, usernames,
+and passwords. Additionally, if the user provided email addresses for
+the delegates, a single-click will send out an email to all users
+with their individual user name and password. 
+</P>
+<P>After the entire delegate list has been entered into the database,
+the user may now view his/her entire delegate list, and make edits as
+necessary by clicking an edit button next to the delegates name. 
+</P>
+<P>From here, the user clicks on the &quot;Committee Assignments&quot;
+tab of the Delegate Management view. The user is presented with a
+two-pane view. In the bottom pane, the user is presented with the
+list of all positions s/he has been given by CM. In our case, the
+user has been assigned the Canadian and Brazilian delegations to the
+UN committees, and 3 spots on specialized committees In the top pane,
+the delegate list appears, with only the name field showing. If a
+delegate has a partner, both names appear on a single line. There are
+two drop-down menus: committee and position. User selects the
+committee to which they wish to assign the delegate to. If only one
+position exists for that committee, it is automatically selected. If
+not, the user selects which of the positions on that committee to
+which to assign the delegate (in our case, likely Canada or Brazil).
+After completing this, the user presses submit to have the
+information updated. (Reach feature: Use the same script mentioned
+previous to accept .csv input. Also, output a template .csv file
+based upon the given assignments to be filled in). 
+</P>
+<H5>Student - Setup and Viewing Committee Info: 
+</H5>
+<P>User has received user name and password either directly from the
+website via email, or from his/her FA via the print out. User arrives
+at the index page and clicks log-in to log in to the site. Upon
+logging in, he is taken to the Delegate home page, displaying the
+latest announcements, and relevant links to necessary downloadable
+documents (Delegate Guide, Rules of Procedure, Code of Conduct,
+etc.), as well as his/her committee page. If this user's profile
+information is incomplete (contact info, etc.), s/he is prompted to
+update it by clicking the Edit Profile button. After filling in all
+the requisite information, the user downloads each of the conference
+documents to read later. User now clicks on the link to his committee
+page. 
+</P>
+<P>Committee view contains the name of the committee, the topics for
+the committee, if applicable, as well as a welcome letter from the
+Chair. User then clicks on the link for the committee Background
+Guide (BG), which downloads as a PDF. After reading the BG, user then
+writes his/her position paper in the word processor of his/her
+choice. Upon completion, user returns to the Delegate home page to
+upload his/her position paper. File name is validated to end in:
+.rtf, .doc, or .pdf. Users submitting .docx files receive a
+particularly bitter error message, while users submitting .odt files
+are given an apologetic error message with a small rant about
+monopolies at the end. 
+</P>
+<H5>Staffer - Selecting Room Assignments:
+</H5>
+<P>User loads the index page and clicks the log-on button. User logs
+in with his Princeton NetID and a temp password created for him/her
+by CM. User is then taken to the staff home page where s/he can see
+to what role s/he have been assigned by CM. They can also see special
+staff announcements in addition to the public announcements User
+clicks on the Rooming Assignments tab, and is taken to a list of all
+the staff rooms and the current occupants of each. User then clicks
+on the room s/he wishes to join. 
+</P>
+<H4>Architecture: 
+</H4>
+<P>The website will use the Django web framework, 
+MySQL, and the Yahoo! User Interface JavaScript
+library. 
+</P>
+<P>Using Django's Object Relational Mapper (ORM) we will define our
+data model entirely in Python classes. A basic outline of our object
+model is listed below. Note that a * indicates that that field is not
+necessary for all instances of the class, and will therefore often be
+NULL. 
+</P>
+<H5>Committees: 
+</H5>
+<UL>
+	<LI> ID 
+	<LI> Committee Name 
+	<LI> Committee Acronym 
+	<LI> Category 
+	<LI> Chair ID 
+	<LI> Director ID 
+	<LI> Number of Delegates 
+	<LI> List of positions 
+	<LI> Application ID* 
+	<LI> Opposing Committee* 
+</UL>
+<H5>Positions: 
+</H5>
+<UL>
+	<LI> ID 
+	<LI> Position/Country Name 
+	<LI> Name of Person* 
+	<LI> Committee ID 
+	<LI> Delegate 1 ID 
+	<LI> Delegate 2 ID* 
+</UL>
+<H5>Person: 
+</H5>
+<UL>
+	<LI> ID 
+	<LI> First Name 
+	<LI> Last Name 
+	<LI> Username 
+	<LI> Hashed password 
+	<LI> Email Address 
+	<LI> Phone number* 
+</UL>
+<H5>Delegate (derived from Person): 
+</H5>
+<UL>
+	<LI> Partner ID* 
+	<LI> Committee ID // Not actually
+	necessary, but useful 
+	<LI> Position ID 
+	<LI> School ID 
+	<LI> Position Paper Status 
+	<LI> Delegate Application 1 ID 
+	<LI> Delegate Application 2 ID 
+	<LI> Delegate Application 3 ID 
+</UL>
+<H5>Staffer (derived from Person): 
+</H5>
+<UL>
+	<LI> Role 
+	<LI> Committee ID* 
+	<LI> Campus Address 
+</UL>
+<H5>School: 
+</H5>
+<UL>
+	<LI> ID 
+	<LI> School Name 
+	<LI> Username 
+	<LI> Hashed password 
+	<LI> Street Address 
+	<LI> City 
+	<LI> State/Province 
+	<LI> Country 
+	<LI> Number of Delegates 
+	<LI> Contact Email Address 
+	<LI> Contact Phone Number 
+	<LI> Assigned Position List 
+	<LI> Amount Owed 
+	<LI> Amount Paid 
+	<LI> Early Registration? 
+	<LI> Registration Date 
+	<LI> First Time? 
+</UL>
+<H5>Application Question: 
+</H5>
+<UL>
+	<LI> ID 
+	<LI> Question Text 
+</UL>
+<H5>Committee Application: 
+</H5>
+<UL>
+	<LI> Committee ID 
+	<LI> List of Application Questions 
+</UL>
+<H5>Delegate Application 
+</H5>
+<UL>
+	<LI> ID 
+	<LI> Delegate ID 
+	<LI> Committee ID 
+	<LI> List of question answers (TEXT) 
+</UL>
+<P>This object model will be accessed using the automatically
+generated Django database access API. This enables complete
+modularity between our web application and the database, as Django
+allows you to simply change which database your application points to
+with nothing else in the code being affected. The SQL database
+will not be accessed through any other interface. 
+</P>
+<P>The provided Django admin interface will be used to set up and
+initialize the database at the start of each year. Efforts will be
+made to add functionality in the web application itself to administer
+the conference, however since most of the required functionality is
+met reasonably well by Django's administration interface, these will
+be low priority. 
+</P>
+<P>The user interface will be written in a combination of XHTML, CSS
+and Javascript using functionality and UI components from YUI. The
+Django templating system will be employed to maintain strict
+separation between the view and the controller. Additionally, an
+inheritance hierarchy of templates will be maintained to minimize
+repetition in the markup. An effort will be made to conform to the
+XHTML 1.0 Strict specification. This is to ensure complete separation
+of the markup and style information. YUI provides some basic CSS
+functionality which will be used to ensure uniformity in style across
+browsers. The application will be tested in IE6, IE7, and Firefox
+2.0. Part of the goal in adhering to standards strictly is for the
+site to &quot;work&quot; in other browsers, such as Safari and Opera,
+though they will not be tested or officially supported. The YUI Core
+will be used to ensure compatibility across browsers in our
+JavaScript code. Additionally, several of the UI controls will likely
+be used, most notably the DataTable control and the LayoutManager
+control. 
+</P>
+<P>We will use the exiting server of the International Relations
+Council to host our website, though we will be completely
+reformatting the system. We will run Apache with mod_python on a
+Linux system, either Ubuntu 7.10 Server Edition or a more customized
+Gentoo build, if time permits. We will also use this machine to host 
+our SVN server. 
+</P>
+<H4>Milestones: 
+</H4>
+<UL>
+	<LI> Before Spring Break (3-14) - Server set-up: Linux, Apache,
+    and SVN installation.
+	<LI> End of Spring Break (3-22) - Data model and basic site
+	organization complete. Database configured. Create first draft 
+of
+    CSS templates and basic site layout.
+	<LI> First TA Meeting - Basic manipulation of data model through
+    browser. Beginnings of session management. Start work on JS 
+controls.
+</UL>
+<P> After our first TA meeting we will use the advice of our TA to
+determine the timing of the remainder of these milestones:
+</P>
+<UL>
+	<LI> Complete session management, including management of 
+privileges 
+	<LI> Completion of server-side code for delegate management
+    <LI> Completion of server-side code for staff management
+	<LI> Complete JavaScript controls and client-side functionality
+	<LI> Finalize markup and page layout
+	<LI> Completion of site design (CSS and graphics)
+	<LI> Final testing
+</UL>
+<H4>Risks and Open Issues: 
+</H4>
+<P>None of us have very significant web development experience,
+though we have some familiarity with web technologies. Also, none of
+us have ever used Python or Django, and only a few of us has done
+significant JavaScript coding. Therefore there will be a HUGE
+learning curve initially. There is the chance that we won't grok all
+the required technologies quickly enough to finish the project. 
+</P>
+<P>Also, while our data model is pretty simple and straightforward,
+there are large number of different features and views that have to
+be implemented. Depending on how efficient we eventually get, we may
+not be able to complete all of the required functionality for the
+site. 
+</P>
+<P>Fortunately, because we have our own server that we are allowed to
+administer, we are unlikely to run into any blocks on the logistical
+side of things. All the software we intend to use is free open source
+software. 
+</P>
+<H4>Reach Features: 
+</H4>
+<UL>
+	<LI> Awards management - allow Chairs to view delegate list for
+    their committees and indicate who has won awards. Then merge winners
+    into MS Word certificate template (likely will be able to 
+implement).
+	<LI> Badges management - merge full delegate list into MS Word 
+badge template
+    (likely will be able to implement)
+	<LI> Research links generated from topic name 
+	<LI> Allow delegates to list committee
+	preferences, and provide FAs with an option to auto-assign 
+delegates
+	to positions using a matching algorithm 
+	<LI> AJAX functionality - doesn't seem
+	necessary now, though I'm sure we can invent a use for it. 
+Interactively
+    editble data table control perhaps?
+	<LI> Committee roll call for use during the conference, allow 
+FAs
+	to see which delegates skipped committee from a web interface 
+</UL>
+</BODY>
+</HTML>
+
