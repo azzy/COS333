@@ -1,0 +1,55 @@
+----------------------------------------------------------------
+EVENTS TABLE: 
+purpose: for each event, has a record for the host, name, type (meal,
+	 study, gym, hang, cuddle, game, or custom type),
+	 location, starttime, endtime, and description.
+fields: eventid hostid name type location starttime endtime descrip
+----------------------------------------------------------------
+eventid: int (auto increment, primary key)
+hostid: int (unique userid in system, phone number?)
+name: varchar(80)
+type: varchar(20)
+location: varchar(80) (this is the colloquial name for the location)
+	note: if we add geographic info later, add fields for lat long
+starttime: time
+endtime: time
+descrip: varchar(150)
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+INVITATIONS TABLE:
+purpose: for each invitation, has records for all invited guests. 
+	 For each guest, has a record whether the guest should be 
+	 notified or not and whether the guest has responded to 
+	 the invitation.
+note: need to decide if we want to bother with id
+fields: id eventid guestid notify response
+----------------------------------------------------------------
+id: int auto_increment primary key
+eventid: int (same as in events table
+guestid: int (unique userid in system)
+notify: BOOL
+response: BOOL
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+FRIENDS TABLE: 
+purpose: for each user, has several records that represent
+	 connections between that user and their friends.
+	 This table basically serves as a DAG of a friend network.
+fields: id userid friendid
+----------------------------------------------------------------
+id: int auto_increment primary key
+userid: int (unique userid in system, same as in invitations or events)
+friendid: int (unique userid in system)
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+LIST TABLE:			
+purpose: for each list, has records for each user in that list.
+	 Need some way to map from listid to colloquial name that
+	 users use and back, and to make lists accessible only to
+	 the users that make them. Maybe use hierarchical naming,
+	 i.e. lists by userid and listname?
+fields: listid userid (add list feature later?)
+----------------------------------------------------------------
