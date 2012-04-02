@@ -12,8 +12,8 @@ import string
 
 # ------------------------------- HELPERS ------------------------------- #
 def connect():
-    # HOST = 'localhost'
-    HOST = '10.210.138.52'
+    HOST = 'localhost'
+    #HOST = '10.210.138.52'
     PORT = '80'
     DATABASE = 'instameet'
     USER = 'web'
@@ -28,6 +28,17 @@ def connect():
 # ------------------------------ INTERFACE ------------------------------- #
 @route('/create_user')
 def create_user():
+    name = request.query.get('name')
+    lastname = request.query.get('lastname')
+    email = request.query.get('email')
+    password = request.query.get('password')
+
+    command = 'INSERT INTO users (name, lastname, email, password) VALUES('\
+        + name + ',' + lastname + ',' + email + ',' + password + ');'
+    cursor.execute(command)
+
+@route('/update_user')
+def update_user():
     return None
 
 @route('/add_friend')
@@ -41,8 +52,8 @@ def create_event():
 # use this if we want users to search only by event name
 @route('/get_events')
 def get_event_by_name():
-    event_name = request.query.get('event_name', '')
-     q = 'SELECT eventid, hostid, name, category, location, starttime, endtime, description FROM events WHERE name LIKE "' + event_name + '"'
+     name = request.query.get('name', '')
+     q = 'SELECT eventid, hostid, name, category, location, starttime, endtime, description FROM events WHERE name LIKE "' + name + '"'
     cursor = connect()
     cursor.execute(q)
     
@@ -62,33 +73,33 @@ def get_event_by_name():
 
 @route('/get_events')
 def get_events():
+    # form query
     q = 'SELECT eventid, hostid, name, category, location, starttime, endtime, description FROM events'
     ands = []
-    if request.query.has_key('event_eventid'):
-        q = q + ' WHERE eventid = "' + request.query['event_eventid'] + '"'
+    if request.query.has_key('eventid'):
+        q = q + ' WHERE eventid = "' + request.query['eventid'] + '"'
     else:
-        if request.query.has_key('event_name'):
-            ands.append('name LIKE "' + request.query['event_name'] + '"')
-        if request.query.has_key('event_hostid'):
-            ands.append('hostid = "' + request.query['event_hostid'] + '"')
-        if request.query.has_key('event_category'):
-            ands.append('category = "' + request.query['event_category'] + '"')
-        if request.query.has_key('event_location'):
-            ands.append('category = "' + request.query['event_location'] + '"')
+        if request.query.has_key('name'):
+            ands.append('name LIKE "' + request.query['name'] + '"')
+        if request.query.has_key('hostid'):
+            ands.append('hostid = "' + request.query['hostid'] + '"')
+        if request.query.has_key('category'):
+            ands.append('category = "' + request.query['category'] + '"')
+        if request.query.has_key('location'):
+            ands.append('category = "' + request.query['location'] + '"')
             # note: find current location from phone and send in field
-        if request.query.has_key('event_starttime'):
-            ands.append('starttime >= "' + request.query['event_starttime'] + '"')
-        if request.query.has_key('event_endtime'):
-            ands.append('endtime <= "' + request.query['event_endtime'] + '"')
-        if 
-            
-    event_starttime = request.query.get('event_starttime', '')
-    event_endtime = request.query.get('event_endtime', '')
-    event_keywords = request.query.get('event_keywords', '')
-    
+        if request.query.has_key('starttime'):
+            ands.append('starttime >= "' + request.query['starttime'] + '"')
+        if request.query.has_key('endtime'):
+            ands.append('endtime <= "' + request.query['endtime'] + '"')
+    q = q + ' WHERE '
+    for term in ands[:-1]:
+        q = q + '"' + term + '"' + ' AND '
+    q = q + ands[len(ands)]
+
+    # execute query and pack results into events
     cursor = connect()
     cursor.execute(q)
-    
     events = {}
     event = cursor.fetchone()
     while event:
