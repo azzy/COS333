@@ -6,8 +6,8 @@ from bottle import route, run, get, post, request, static_file, error, abort
 from bottle import response, template
 import bottle
 import string
+import json
 
-# import json
 # use as: return json.dumps(dict)
 
 # ------------------------------- HELPERS ------------------------------- #
@@ -28,14 +28,15 @@ def connect():
 # ------------------------------ INTERFACE ------------------------------- #
 @route('/create_user')
 def create_user():
-    name = request.query.get('name')
-    lastname = request.query.get('lastname')
-    email = request.query.get('email')
-    password = request.query.get('password')
+    name = request.forms.get('name')
+    lastname = request.forms.get('lastname')
+    email = request.forms.get('email')
+    password = request.forms.get('password')
 
     command = 'INSERT INTO users (name, lastname, email, password) VALUES('\
         + name + ',' + lastname + ',' + email + ',' + password + ');'
     cursor.execute(command)
+    return command
 
 @route('/update_user')
 def update_user():
