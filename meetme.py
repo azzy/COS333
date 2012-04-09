@@ -333,4 +333,4 @@ def update_response():
     _save(events, 'events.json')
     return json.dumps(event)
 
-run(port=8080)
+run(host='ec2-50-17-119-54.compute-1.amazonaws.com',port=8080)

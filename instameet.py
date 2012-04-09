@@ -3,7 +3,7 @@
 from MySQLdb import connect
 from MySQLdb import cursors
 from bottle import route, run, get, post, request, static_file, error, abort
-from bottle import response, template
+from bottle import response, template, Bottle
 import bottle
 import string
 import json
@@ -26,6 +26,10 @@ def connect():
     return cursor
 
 # ------------------------------ INTERFACE ------------------------------- #
+@route('/forms')
+def forms():
+    return template('forms')
+
 @route('/create_user')
 def create_user():
     name = request.forms.get('name')
@@ -53,8 +57,8 @@ def create_event():
 # use this if we want users to search only by event name
 @route('/get_events')
 def get_event_by_name():
-     name = request.query.get('name', '')
-     q = 'SELECT eventid, hostid, name, category, location, starttime, endtime, description FROM events WHERE name LIKE "' + name + '"'
+    name = request.query.get('name', '')
+    q = 'SELECT eventid, hostid, name, category, location, starttime, endtime, description FROM events WHERE name LIKE "' + name + '"'
     cursor = connect()
     cursor.execute(q)
     
@@ -116,3 +120,6 @@ def get_events():
         event = cursor.fetchone()
 
     return events
+
+bottle.debug(True)
+run(host='localhost', port=8080)
