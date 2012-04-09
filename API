@@ -1,0 +1,93 @@
+user = { userid:	userid,
+       	 name:		name,
+         lastname: 	lastname,
+	 email:		email,
+	 password:	password,
+	 friends:	[ friend1id,
+	 		  friend2id ]
+
+         invitations:   [ eventid,
+	 		  eventid,
+			  eventid,
+			  eventid ]
+
+	 events: 	[ eventid,
+	 		  eventid,
+			  eventid ]
+       }
+
+
+event = { eventid:    	eventid,
+          hostid:	hostid,
+	  name:		name,
+	  category:	category,
+	  location:	location,
+	  starttime:	starttime,
+	  endtime:	endtime,
+	  description:	description,
+	  guests:	{ guestid: response,
+	  		  guestid: response }
+        }
+
+
+#-----------------------------------------------
+
+method get_users:
+       takes: None
+       returns: users
+
+method get_user:
+       takes:	userid
+       returns: user
+
+method create_user:
+       takes:	name, lastname, email, password
+       returns:	user
+
+method update_user:
+       takes:	userid, name, lastname, email, password
+       returns: user
+
+method get_friends:
+       takes: userid
+       returns: friends
+
+method add_friend:
+       takes:	userid, friendid
+       returns: true or false
+
+method remove_friend:
+       takes:	userid, friendid
+       returns: true or false
+
+method get_events:
+       takes:   None
+       returns: events
+
+method get_event:
+       takes:	eventid
+       returns: event
+
+method create_event:
+       takes:   hostid, name, category, location, starttime, endtime, description
+       returns: event
+
+method update_event:
+       takes(some of):	eventid, name, category, location, starttime, endtime, description
+       returns: event
+
+method get_guests:
+       takes:	eventid
+       returns: guests
+
+method add_guest:
+       takes:   eventid, guestid
+       returns: true or false
+
+method remove_guest:
+       takes:   eventid, guestid
+       returns: true or false
+
+method update_response:
+       takes:   eventid, guestid, response
+       returns: true or false
