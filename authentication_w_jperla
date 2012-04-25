@@ -1,0 +1,48 @@
+Need to persist username, password.
+
+1: authenticate
+2: install cookie
+3: future HTTP requests present cookie.
+
+Keep username/password separate from user information. Associate them with the same userid.
+Authentication is about associating some user identification/authentication information with the userid in your system.
+
+Forgotten password?
+
+Password: most basic, hashlib.md5.
+	  bcrypt()
+	  salt it (add random characters before it)
+	  for almost any site, hashlib.md5 is FINE.
+	  sha1 or sha255 is slightly better than md5
+	  use s = hashlib.md5("password")
+	  check if their password hashed with md5 is the same as 
+
+
+map (in a flat file, doesn't really change, needs to be separate):	  
+    uid	login	 password fbid
+
+
+
+    browser sends user/password
+    server checks if password == pasword
+    if so, generates a cookie = {uid, md5("secret code" + uid)}
+    in future, when you send a request, you send the cookie with it.
+    check if md5("secret code" + uid) == cookie before serving. <--- stateless, no persisting data, excellent.
+    	     		       	      	 	       		     secure because browser can't make own cookie
+								     since he doesn't have the secret code.
+    can add date in there, or whatever else you want to make sure that it's current, etc.
+    function is_authenticated_user(cookie) returns boolean.
+    function gen_cookie(userid) returns cookie
+    stick these in a file called secure.py or something. isolated.
+    logout = delete cookie.
+    sessions in bottle is a dictionary. just del that item in the dictionary
+    
+
+
+Preventing Cross Site Forgery:
+	   keep a secret token in your app. Your submit page should only accept if the request has the correct secret token.
+
+Save security token in User Preferences. send it every time.
+
+
+Images: pngs, with different filenames for each resolution.

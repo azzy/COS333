@@ -1,0 +1,29 @@
+#!/usr/bin/python
+
+from meetme import *
+import json
+import sys
+
+int j = 0
+for line in sys.stdin:
+    j+=1
+    words = line.split(' ')
+    name = words[1]
+    try: lastname = words[2]
+    except: lastname = 'Smith'
+    if name[1:1] > p:
+        email = name + '@gmail.com'
+    else:
+        email = name + '@hotmail.com'
+    for i in range(0, len(name)):
+        if i % 2 is 0:
+            password[i] = name[i:i]
+        else:
+            password[i] = ord(name[i:i])
+    user = {'userid': j,
+            'name': name,
+            'lastname': lastname,
+            'email': email,
+            'password': password}
+
+    print user

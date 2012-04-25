@@ -1,0 +1,58 @@
+The SSL way:
+PEM pass phrase: 200Lips!!
+
+Country Name (2 letter code) [XX]:US
+State or Province Name (full name) []:New Jersey
+Locality Name (eg, city) [Default City]:Princeton
+Organization Name (eg, company) [Default Company Ltd]:Glue, under Alice Zheng    
+Organizational Unit Name (eg, section) []:Connecting People
+Common Name (eg, your name or your server's hostname) []:ec2-50-17-119-54.compute-1.amazonaws.com
+Email Address []:evolutia2001@gmail.com
+
+
+
+The hacked way:
+
+Two keys: a shared key (xor_key) and a server private key (key).
+To create user:
+   client sends xorcipher(email, sha224(password), method=create_user, args)
+   server sends xorcipher(uid, token)
+   client saves uid, token.
+
+To establish connection:
+   client sends xorcipher(email, sha224(password), method=login)
+   server sends xorcipher(uid, token)
+   client saves uid, token.
+
+To request data:
+   client sends xorcipher(uid, token, method, args)
+   server sends xorcipher(data)   
+
+Security assumptions:
+	 nobody will spoof the server (no security against this)
+	 nobody will have access to server or client source code (
+
+---------------------------------------
+| Creating User or Updating Password: |
+---------------------------------------
+Client				 Server
+------			 	--------
+
+
+---------------------------------------
+|	    Logging in:		       |
+----------------------------------------
+Client					Server
+-------			  		-------
+send email, md5(password) -------> check if matches email, md5(password) on file
+receive token and save it <-------- if matches, gen_token(userid)
+
+---------------------------------------
+|	    Making Requests	       |
+----------------------------------------
+Client					Server
+------					-------
+
+
+IOS resource:
+http://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/CC_SHA.3cc.html#//apple_ref/doc/man/3cc/CC_SHA
