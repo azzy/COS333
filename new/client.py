@@ -1,0 +1,94 @@
+#!/usr/bin/python
+
+from bottle import route, run, request
+import bottle
+import string
+import json
+import hmac
+import hashlib
+import urllib2, urllib
+
+# ---------------------------- AUTH HELPERS ------------------------------ #
+key = "okXRDgXqnDfyYK11nARRIdUy5xmuGsJi00DQuyzaGYY"
+
+def make_digest(message):
+    ''' return a digest for the message.'''
+    return hmac.new(key, message, hashlib.sha224).hexdigest()
+
+def encode(dictionary):
+    ret = ''
+    for k, v in dictionary.iteritems():
+        ret += str(k) + '+' + str(v) + '|'
+    return ret[:-1]
+
+def decode(s):
+    ret = {}
+    kv = s.split('|')
+    for pair in kv:
+        key, value = pair.split(' ', 1)
+        ret[key] = value
+    return ret
+
+# ------------------------------ INTERFACE ------------------------------- #
+
+req_none = ['login']
+req_sig = ['get_users',
+           'create_user',
+           'get_events'
+           ]
+req_tok = ['get_user',
+           'update_user',
+           'get_friends',
+           'add_friend',
+           'remove_friend',
+           'get_event',
+           'create_event',
+           'update_event',
+           'get_guests',
+           'add_guest',
+           'remove_guest',
+           'update_response'
+           ]
+token = 'bullshit'
+@route('/')
+def app():
+    global token
+    method = request.GET['method']
+    args = {}
+    args['name'] = request.GET.get('name', '')
+    args['lastname'] = request.GET.get('lastname', '')
+    args['email'] = request.GET.get('email','')
+    args['password'] = request.GET.get('password','')
+    args['eventid'] = request.GET.get('eventid', '')
+    args['friendid'] = request.GET.get('friendid', '')
+    args['category'] = request.GET.get('category', '')
+    args['location'] = request.GET.get('location', '')
+    args['starttime'] = request.GET.get('starttime', '')
+    args['endtime'] = request.GET.get('endtime', '')
+    args['description'] = request.GET.get('description','')
+    args['guestid'] = request.GET.get('guestid', '')
+    
+    sig = encode({ 'method': method, 'sig': make_digest(method) })
+    print sig
+    host = 'http://localhost'
+    url = host + '/' + method
+    if method in req_tok:
+        url += '?token=' + token
+    elif method in req_sig:
+        url += '?sig=' + sig
+    elif method in req_none:
+        url += '?'
+    else: return 'unsupported method'
+
+    for param, val in args.iteritems():
+        if len(val) > 1:
+            url += '&' + param + '=' + val    
+    
+    f = urllib2.urlopen(url)
+    ret = f.read()
+    f.close()
+    if method == 'login' and ret is not 'Authentication Failed':
+        token = ret
+    return ret
+
+run(host='0.0.0.0',port=8085)

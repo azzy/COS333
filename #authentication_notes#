@@ -4,8 +4,8 @@ PEM pass phrase: 200Lips!!
 Country Name (2 letter code) [XX]:US
 State or Province Name (full name) []:New Jersey
 Locality Name (eg, city) [Default City]:Princeton
-Organization Name (eg, company) [Default Company Ltd]:Glue, under Alice Zheng    
-Organizational Unit Name (eg, section) []:Connecting People
+Organization Name (eg, company) [Default Company Ltd]:Alice Zheng
+Organizational Unit Name (eg, section) []:Glue
 Common Name (eg, your name or your server's hostname) []:ec2-50-17-119-54.compute-1.amazonaws.com
 Email Address []:evolutia2001@gmail.com
 
@@ -44,7 +44,7 @@ Client				 Server
 ----------------------------------------
 Client					Server
 -------			  		-------
-send email, md5(password) -------> check if matches email, md5(password) on file
+send email, sha224(password) -------> check if matches email, md5(password) on file
 receive token and save it <-------- if matches, gen_token(userid)
 
 ---------------------------------------

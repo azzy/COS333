@@ -38,12 +38,18 @@ hmac(n, (uid, p)) ----------> add to database
 check if yes      <---------  hmac(p, yes)
 
 ---------------------------------------
-|	    Making requests:	       |
+|	    Logging in:		       |
 ----------------------------------------
 Client					Server
 -------			  		-------
 hmac(n, (uid, p))      -----------> verify (uid, p) in database
 verify (uid, p) matches <--------- hmac(n, (uid*, p*)) (where * indicates decrypted)
+
+---------------------------------------
+|	    Making Requests	       |
+----------------------------------------
+Client					Server
+------					-------
 hmac(p, (uid, m))       -----------> process request
 		       <---------- hmac(p, (uid, r))
 

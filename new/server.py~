@@ -1,0 +1,412 @@
+#!/usr/bin/python
+
+from bottle import route, run, request, server_names, ServerAdapter
+import bottle
+import string
+import json
+import hmac
+import hashlib
+from itertools import izip, cycle
+# import pdb; pdb.set_trace()
+# put the above line at break points.
+
+# ---------------------------- AUTH HELPERS ------------------------------ #
+key = "okXRDgXqnDfyYK11nARRIdUy5xmuGsJi00DQuyzaGYY"
+
+def perror():
+    return "Intruder Alert!"
+
+def is_benign(sig):
+    return sig['sig'] == make_digest(sig['method'])
+
+def is_authenticated(token):
+    return token['token'] == gen_token(token['userid'])
+
+def gen_token(userid):
+    return hmac.new(key, userid, hashlib.sha1).hexdigest()
+
+def make_digest(message):
+    ''' return a digest for the message.'''
+    return hmac.new(key, message, hashlib.sha224).hexdigest()
+
+def xor_crypt_string(data, key):
+    return ''.join(chr(ord(x) ^ ord(y)) for (x, y) in izip(data, cycle(key)))
+
+# ------------------------------- HELPERS -------------------------------- #
+def _save(dictionary, file):
+    json_string = json.dumps(dictionary)
+    with open (file, 'w') as f:
+        f.write(json_string)
+
+def _get(dictionary, id):
+    try:
+        return dictionary[id]
+    except:
+        raise AssertionError('id out of bounds')
+
+def _load(filename):
+    return json.loads(open(filename, 'r').read())
+#users = json.loads(open('users.json', 'r').read())
+#events = json.loads(open('events.json', 'r').read())
+#auth = json.loads(open('auth.json', 'r').read())
+
+def _update_auth(userid, email, password):
+    auth = _load('auth.json')
+    auth_entry = auth.get(userid, {})
+    auth_entry['userid'] = userid
+    if email is not None:
+        auth_entry['email'] = email
+    if password is not None:
+        auth_entry['password'] = make_digest(password)
+    auth[userid] = auth_entry
+    _save(auth, 'auth.json')
+
+def _update_user(userid, name, lastname):
+    users = _load('users.json')
+    if userid is None:
+        userid = len(users) + 1
+    user = users.get(userid, {})
+    user['userid'] = userid
+    if name is not None:
+        user['name'] = name
+    if lastname is not None:
+        user['lastname'] = lastname
+    users[userid] = user
+    _save(users, 'users.json')
+    return user
+
+#add user to user's friends list
+def _add_friend(userid, friendid):
+    users = _load('users.json')
+    user = _get(users, userid)
+    if friendid not in user['friends']:
+        user['friends'].append(friendid)
+    return user
+
+#remove user from user's friends list
+def _remove_friend(userid, friendid):
+    users = _load('users.json')
+    user = _get(users, userid)
+    if friendid in user['friends']:
+        user['friends'].remove(friendid)
+    return user
+
+#add user to event's guests list
+def _add_guest(eventid, guestid):
+    events = _load('events.json')
+    event = _get(events, eventid)
+    if guestid is event['hostid']: # this line doesn't work. make it work.
+        raise AssertionError('cannot invite the host')
+    if guestid not in event['guests']:
+        event['guests'][guestid] = 'no'
+    return event
+
+#remove user from event's guests list
+def _remove_guest(eventid, guestid):
+    events = _load('events.json')
+    event = _get(events, eventid)
+    if guestid in event['guests']:
+        del event['guests'][guestid]
+    return event
+
+#add event to user's invitations list
+def _add_invitation(eventid, guestid):
+    users = _load('users.json')
+    user = _get(users, guestid)
+    if eventid not in user['invitations']:
+        user['invitations'].append(eventid)
+    return user
+
+#remove event from user's invitations list
+def _remove_invitation(eventid, guestid):
+    users = _load('users.json')
+    user = _get(users, guestid)
+    if eventid in user['invitations']:
+        user['invitations'].remove(eventid)
+    return user
+
+#add event to user's events list
+def _add_event(eventid, hostid):
+    users = _load('users.json')
+    user = _get(users, hostid)
+    if eventid not in user['events']:
+         user['events'].append(eventid)
+    return user
+
+def _is_hosting(userid, eventid):
+    events = _load('events.json')
+    event = events[eventid]
+    return userid is event['hostid']
+
+def _is_invited(userid, eventid):
+    users = _load('users.json')
+    user = users[userid]
+    return eventid in user['invitations']
+
+# ------------------------------ INTERFACE ------------------------------- #
+# note: still need to go through and proof everything my error proofing is so off.
+@route('/login')
+def login():
+    auth = _load('auth.json')
+    email = request.GET['email']
+    password = make_digest(request.GET['password'])
+    # assume that we connected through SSL
+    for i, entry in auth.iteritems():
+        if entry['email'] == email and entry['password'] == password:
+            userid = entry['userid']
+            return json.dumps({'userid': userid, 'token':gen_token('userid')}) 
+        else:
+            userid = None
+            return "Authentication Failed"
+
+@route('/get_users')
+def get_users():
+    sig = json.loads(request.GET['sig'])
+    if is_benign(sig):
+        users = _load('users.json')
+        return json.dumps(users)
+    else: return perror()
+
+@route('/get_user')
+def get_user():
+    token = json.loads(request.GET['token'])
+    if is_authenticated(token):
+        userid = token['userid']
+        users = _load('users.json')
+        user = _get(users, userid)
+        return json.dumps(users[userid])
+    else: return perror()
+
+@route('/create_user')
+def create_user():
+    sig = json.loads(request.GET['sig'], key)
+    name = request.GET['name']
+    lastname = request.GET.get('lastname', '')
+    email = request.GET['email']
+    password = request.GET['password']
+    if is_benign(sig):
+        _update_user(None, name, lastname)
+        _update_auth(userid, email, password) #function handles the sha
+        return json.dumps(user)
+    else: return perror()
+    
+@route('/update_user')
+def update_user():
+    name = request.GET.get('name', None)
+    lastname = request.GET.get('lastname', None)
+    email = request.GET.get('email', None)
+    password = request.GET.get('password', None)
+    token = json.loads(request.GET['token'])
+    if is_authenticated(token):
+        userid = token['userid']
+        _update_auth(userid, email, password)
+        user = _update_user(userid, name, lastname)
+        return user
+    else: return perror()
+
+@route('/get_friends')
+def get_friends():
+    token = json.loads(request.GET['token'])
+    if is_authenticated(token):
+        userid = token['userid']
+        users = _load('users.json')
+        user = _get(users, userid)
+        return json.dumps(user['friends'])
+    else: return perror()
+
+@route('/add_friend')
+def add_friend():
+    token = json.loads(request.GET['token'])
+    friendid = request.GET['friendid']
+    if is_authenticated(token):
+        userid = token['userid']
+        users = _load('users.json')
+        user = _add_friend(userid, friendid)
+        #friend = _add_friend(friendid, userid) 
+        # note that friend won't necessarily add you back.
+        users[userid] = user
+        users[friendid] = friend
+        _save(users, 'users.json')
+        return True
+    else: return False
+
+@route('/remove_friend')
+def remove_friend():
+    friendid = request.GET['friendid']
+    token = json.loads(request.GET['token'])
+    if is_authenticated(token):
+        userid = token['userid']
+        users = _load('users.json')
+        user = _remove_friend(userid, friendid)
+        #friend = _remove_friend(friendid, userid)
+        users[userid] = user
+        users[friendid] = friend
+        _save(users, 'users.json')
+        return True
+    else: return False
+
+@route('/get_events')
+def get_events():
+    sig = json.loads(request.GET['sig'])
+    if is_benign(sig):
+        events = _load('events.json')
+        return json.dumps(events)
+    else: return perror()
+
+@route('/get_event')
+def get_event():
+    token = json.loads(request.GET['token'])
+    eventid = request.GET.get('eventid', None)
+    events = _load('events.json')
+    event = _get(events, eventid)
+    userid = token['userid']
+    if is_authenticated(token) and _is_hosting(userid, eventid) or _is_invited(userid, eventid):
+        return json.dumps(event)
+    else: return perror()
+
+@route('/create_event')
+def create_event():
+    token = json.loads(request.GET['token']) 
+    name = request.GET.get('name', '')
+    category = request.GET.get('category', '')
+    location = request.GET.get('location', '')
+    starttime = request.GET.get('starttime', '')
+    endtime = request.GET.get('endtime', '')
+    description = request.GET.get('description', '')
+    if is_authenticated(token):
+        hostid = token['userid']
+        events = _load('events.json')
+        users = _load('users.json')
+        eventid = len(events) + 1
+        event = {'eventid': eventid,
+                 'hostid' : hostid,
+                 'name': name,
+                 'category': category,
+                 'location': location,
+                 'starttime': starttime,
+                 'endtime': endtime,
+                 'description': description,
+                 'guests': {}
+                 }
+        user = _add_event(eventid, hostid)
+        events[eventid] = event
+        users[hostid] = user
+        _save(events, 'events.json')
+        _save(users, 'users.json')
+        return json.dumps(event)
+    else: return perror()
+
+@route('/update_event')
+def update_event():
+    eventid = request.GET.get('eventid', None)
+    token = json.loads(request.GET['token'])
+    name = request.GET.get('name', None)
+    category = request.GET.get('category', None)
+    location = request.GET.get('location', None)
+    starttime = request.GET.get('starttime', None)
+    endtime = request.GET.get('endtime', None)
+    description = request.GET.get('description', None)
+    if is_authenticated(token) and _is_hosting(token['userid'], eventid):
+        events = _load('events.json')
+        event = _get(events, eventid)
+        if name is not None:
+            event['name'] = name
+        if category is not None:
+            event['category'] = category
+        if location is not None:
+            event['location'] = location
+        if starttime is not None:
+            event['starttime'] = starttime
+        if endtime is not None:
+            event['endtime'] = endtime
+        if description is not None:
+            event['description'] = description
+        events[eventid] = event
+        _save(events, 'events.json')
+        return json.dumps(event)
+    else: return perror()
+
+@route('/get_guests')
+def get_guests():
+    token = json.loads(request.GET['token'])
+    eventid = request.GET['eventid']
+    userid = token['userid']
+    if is_authenticated(token) \
+            and _is_hosting(userid, eventid) \
+            or _is_invited(userid, eventid):
+        events = _load('events.json')
+        event = _get(events, eventid)
+        return json.dumps(event['guests'])
+    else: return perror()
+
+@route('/add_guest')
+def add_guest():
+    eventid = request.GET['eventid']
+    guestid = request.GET['guestid']
+    token = json.loads(request.GET['token'])
+    if is_authenticated(token) and _is_hosting(token['userid'], eventid):
+        users = _load('users.json')
+        events = _load('events.json')
+        user = _add_invitation(eventid, guestid)
+        event = _add_guest(eventid, guestid)
+        users[guestid] = user
+        events[eventid] = event
+        _save(events, 'events.json')
+        _save(users, 'users.json')
+        return True
+    else: return False
+
+@route('/remove_guest')
+def remove_guest():
+    token = json.loads(request.GET['token'])
+    eventid = request.GET['eventid']
+    guestid = request.GET['guestid']
+    if is_authenticated(token) and _is_hosting(token['userid'], eventid):
+        users = _load('users.json')
+        events = _load('events.json')
+        user = _remove_invitation(eventid, guestid)
+        event = _remove_guest(eventid, guestid)
+        users[guestid] = user
+        events[eventid] = event
+        _save(events, 'events.json')
+        _save(users, 'users.json')
+        return True
+    else: return False
+
+@route('/update_response')
+def update_response():
+    eventid = request.GET['eventid']
+    response = request.GET.get('response', 'no')
+    token = json.loads(request.GET['token'])
+    guestid = token['userid']
+    if is_authenticated(token) and _is_invited(guestid, eventid):
+        users = _load('users.json')
+        events = _load('events.json')
+        event = _get(events, eventid)
+        event['guests'][guestid] = response
+        events[eventid] = event
+        _save(events, 'events.json')
+        return True
+    else: return False
+
+# ----------------------- ROUTING/AUTH & RUNNING ---------------------------#
+
+class MySSLCherryPy(ServerAdapter):
+    def run(self, handler):
+        from cherrypy import wsgiserver
+        server = wsgiserver.CherryPyWSGIServer((self.host, self.port), handler)
+        cert = '/root/COS333/server.pem'
+        ssl = wsgiserver.SSLAdapter(cert, cert)
+        server.ssl_addapter = ssl
+        try:
+            server.start()
+        finally:
+            server.stop()
+
+server_names['mysslcherrypy'] = MySSLCherryPy
+
+# SSL connection:
+# run(host='ec2-50-17-119-54.compute-1.amazonaws.com', port=443, server='mysslcherrypy')
+
+# non secure connection:
+run(host='ec2-50-17-119-54.compute-1.amazonaws.com', port=9000)

@@ -47,7 +47,7 @@ http://23.23.223.158/get_user?token=token+cb2de2653adb3e1bab66324523f7fbcbbc950a
 Quick list of authentication requirements:
 Requires no authentication: 
 	 login
-Requires signature:
+Requires key:
 	 get_users, create_user, get_events
 Requires token:
 	 get_user, update_user, get_friends, add_friend, remove_friend,

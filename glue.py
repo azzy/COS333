@@ -301,4 +301,4 @@ def get_hosted_events():
     return None
     ''' takes userid and returns list of events that user is hosting'''
 
-run(host='ec2-50-17-119-54.compute-1.amazonaws.com',port=8080)
+run(host='0.0.0.0',port=8080)
