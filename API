@@ -6,6 +6,7 @@ auth = { userid:	userid,
 user = { userid:	userid,
        	 name:		name,
          lastname: 	lastname,
+	 email:		email,
 	 friends:	[ friend1id,
 	 		  friend2id ]
 
@@ -33,11 +34,7 @@ event = { eventid:    	eventid,
         }
 
 token = 'userid+' + userid + '|token+' + gen_token(userid)
-sig =   'method+' + method + '|sig+' + make_digest(method) 
-      	# make_digest returns the hexdigest of sha224 the shared secret key
-	# basically the format is just a dictionary encoded in a way that
-	# has no spaces or curly braces. key-value pairs are separate by |
-	# and key is separated from value by +
+key = 'okXRDgXqnDfyYK11nARRIdUy5xmuGsJi00DQuyzaGYY'
 
 Example urls:
 http://23.23.223.158/login?email=azheng@princeton.edu&password=password
@@ -47,10 +44,10 @@ http://23.23.223.158/get_user?token=token+cb2de2653adb3e1bab66324523f7fbcbbc950a
 Quick list of authentication requirements:
 Requires no authentication: 
 	 login
-Requires signature:
-	 get_users, create_user, get_events
+Requires key:
+	 get_users, get_user, create_user, get_events
 Requires token:
-	 get_user, update_user, get_friends, add_friend, remove_friend,
+	 get_auth, update_user, get_friends, add_friend, remove_friend,
 	 get_event, create_event, update_event, get_guests, add_guest,
 	 remove_guest, update_response
 
@@ -63,12 +60,12 @@ method login:
        access: All
 
 method get_users:
-       takes: sig
+       takes: key
        returns: users
        access: Us # anyone with the app :(
 
 method get_user:
-       takes:	userid, sig
+       takes:	userid, key
        returns: user
        access:  Us
 
@@ -78,13 +75,18 @@ method get_auth:
        access: 	Us
 
 method create_user:
-       takes:	name, lastname, email, password, sig
+       takes:	name, lastname, email, password, key
        returns:	user
        access: Us
 
 method update_user:
        takes:	name, lastname, email, password, token
        returns: user
+       access: this user
+
+method remove_user:
+       takes:	token
+       returns: "yes" or "no"
        access: this user
 
 method get_friends:
@@ -94,16 +96,16 @@ method get_friends:
 
 method add_friend:
        takes:	friendid, token
-       returns: true or false
+       returns: "yes" or "no"
        access: this user
 
 method remove_friend:
        takes:	friendid, token
-       returns: true or false
+       returns: "yes" or "no"
        access: this user
 
 method get_events:
-       takes:   sig
+       takes:   key
        returns: events
        access: Us
 
@@ -122,6 +124,11 @@ method update_event:
        returns: event
        access: host of the event
 
+method remove_event:
+       takes:	eventid, token
+       returns: "yes" or "no" #true and false won't pass 
+       access: host of the event
+
 method get_guests:
        takes:	eventid, token
        returns: guests
@@ -129,15 +136,15 @@ method get_guests:
 
 method add_guest:
        takes:   eventid, guestid, token
-       returns: true or false
+       returns: "yes" or "no"
        access: host
 
 method remove_guest:
        takes:   eventid, guestid, token
-       returns: true or false
+       returns: "yes" or "no"
        access: host
 
 method update_response:
        takes:   eventid, response, token
-       returns: true or false
+       returns: "yes" or "no"
        access: user (guest with the token)
