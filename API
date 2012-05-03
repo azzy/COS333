@@ -7,17 +7,27 @@ user = { userid:	userid,
        	 name:		name,
          lastname: 	lastname,
 	 email:		email,
+	 phone:		10-digit-phone-number,
+	 options:	code,		# 0 = no app, no text notification
+	 				# 1 = no app, yes text notification
+					# 2 = yes app, no text notification
+					# 3 = yes app, yes text notification
 	 friends:	[ friend1id,
-	 		  friend2id ]
-
-         invitations:   [ eventid,
-	 		  eventid,
-			  eventid,
-			  eventid ]
-
+	 		  friend2id ],
+         invitations:   { eventid: response,
+	 		  eventid: response },
 	 events: 	[ eventid,
 	 		  eventid,
-			  eventid ]
+			  eventid ],
+	 modified: 	{ invitations:  { anybody: "yes",
+	 		  		  friendid: "yes", # of person who mod 
+	 		  		  friendid: "no" },
+			  events:	{ anybody: "yes,
+			  		  friendid: "yes", 
+			  		  friendid: "no" } }
+			  # if invitations or events has changed
+       	 		  # since the last time that this info
+			  # was retrieved.
        }
 
 
@@ -56,7 +66,7 @@ in any way or that we are missing some functions.
 #-----------------------------------------------
 method login:
        takes: email, password
-       returns: token
+       returns: token, userid
        access: All
 
 method get_users:
@@ -68,6 +78,11 @@ method get_user:
        takes:	userid, key
        returns: user
        access:  Us
+
+method get_self:
+       takes:	token
+       returns: user
+       access:  this user
 
 method get_auth:
        takes:	token
@@ -99,15 +114,40 @@ method add_friend:
        returns: "yes" or "no"
        access: this user
 
+method add_friends:
+       takes:	token, friendids (delimited by ",")
+       returns: "yes" or "no"
+       access: this user
+
 method remove_friend:
        takes:	friendid, token
        returns: "yes" or "no"
        access: this user
 
-method get_events:
+method remove_friends:
+       takes:	token, friendids (delimited by ",")
+       returns: "yes" or "no"
+       access: this user
+
+method is_modified:
+       takes:	token, which ("invitations" or "events"), friendid (optional)
+       returns:	"yes" or "no" or "failed"
+       access: this user
+
+method get_events:				#NOTE: FOR INTERNAL USE
        takes:   key
        returns: events
        access: Us
+
+method get_my_invitations:	#note: only method that resets need to update
+       takes:	token, hostid (optional filter)
+       returns: events (json array of events to which user is invited)
+       access: 	this user
+
+method get_my_events:		#note: only method that resets need to update
+       takes:	token, guestid (optional filter)
+       returns: events (json array of events this user is hosting)
+       access: 	this user
 
 method get_event:
        takes:	eventid, token
@@ -115,7 +155,7 @@ method get_event:
        access:  anyone invited or hosting this event
 
 method create_event:
-       takes:   name, category, location, starttime, endtime, description, token
+       takes:   name, category, location, starttime, endtime, description, token, guestids (delimited with "," this is optional)
        returns: event
        access:  a user
 
@@ -134,13 +174,23 @@ method get_guests:
        returns: guests
        access: anyone invited or hosting this event
 
-method add_guest:
+method add_guest:     	      	 	      #DEPRECATED PLEASE PHASE OUT
        takes:   eventid, guestid, token
        returns: "yes" or "no"
        access: host
 
-method remove_guest:
+method add_guests:
+       takes:	eventid, token, guestids (delimited with ",")
+       returns: "yes" or "no"
+       access: host
+
+method remove_guest:				#DEPRECATED PLEASE PHASE OUT
        takes:   eventid, guestid, token
+       returns: "yes" or "no"
+       access: host
+
+method remove_guests:
+       takes:	eventid, token, guestids (delimited with ",")
        returns: "yes" or "no"
        access: host
 
