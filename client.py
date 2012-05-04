@@ -35,7 +35,8 @@ req_none = ['login']
 req_key = ['get_users',
            'create_user',
            'get_events',
-           'get_user'
+           'get_user',
+           'rewrite_database'
            ]
 req_tok = ['get_auth',
            'get_self',
@@ -43,14 +44,21 @@ req_tok = ['get_auth',
            'remove_user',
            'get_friends',
            'add_friend',
+           'add_friends',
            'remove_friend',
+           'remove_friends',
+           'is_modified',
+           'get_my_invitations',
+           'get_my_events',
            'get_event',
            'remove_event',
            'create_event',
            'update_event',
            'get_guests',
            'add_guest',
+           'add_guests',
            'remove_guest',
+           'remove_guests',
            'update_response'
            ]
 token = 'bullshit'
@@ -65,18 +73,21 @@ def app():
     args['password'] = request.GET.get('password','')
     args['eventid'] = request.GET.get('eventid', '')
     args['friendid'] = request.GET.get('friendid', '')
+    args['friendids'] = request.GET.get('friendids', '')
     args['category'] = request.GET.get('category', '')
     args['location'] = request.GET.get('location', '')
     args['starttime'] = request.GET.get('starttime', '')
     args['endtime'] = request.GET.get('endtime', '')
     args['description'] = request.GET.get('description','')
     args['guestid'] = request.GET.get('guestid', '')
+    args['guestids'] = request.GET.get('guestids', '')
     args['userid'] = request.GET.get('userid', '')
     args['response'] = request.GET.get('response', '')
+    args['which'] = request.GET.get('which', '')
     
 #    sig = encode({ 'method': method, 'sig': make_digest(method) })
     key = secret_key
-    host = 'http://localhost'
+    host = 'http://localhost:9000'
     url = host + '/' + method
     if method in req_tok:
         url += '?token=' + token

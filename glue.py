@@ -50,6 +50,7 @@ def decode(s):
         return None
 
 # ------------------------------- HELPERS -------------------------------- #
+# Note: consider rewriting save/load so they save and load specific entries.
 def _save(dictionary, file):
     json_string = json.dumps(dictionary)
     with open (file, 'w') as f:
@@ -66,6 +67,17 @@ def _load(filename):
 #users = json.loads(open('users.json', 'r').read())
 #events = json.loads(open('events.json', 'r').read())
 #auth = json.loads(open('auth.json', 'r').read())
+
+def _mark_modified(user, which, friendid, status):
+    if not user.has_key('modified'):
+        user['modified'] = { 'invitations': [],
+                             'events': [] }
+    if status is "yes" and friendid not in user['modified'][which]:
+        user['modified'][which].append(friendid)
+        user['modified'][which].append('all')
+    elif friendid in user['modified'][which]:
+        user['modified'][which].remove(friendid)
+    return user
 
 def _update_auth(userid, email, password):
     auth = _load('auth.json')
@@ -86,8 +98,8 @@ def _update_user(userid, name, lastname, email, phone):
     user = users.get(userid, {'friends':[],\
                               'invitations':{},\
                               'events':[],\
-                              'modified': { 'invitations': {},
-                                            'events': {} } })
+                              'modified': { 'invitations': [],
+                                            'events': [] } })
     user['userid'] = userid
     if name is not None:
         user['name'] = name
@@ -101,35 +113,26 @@ def _update_user(userid, name, lastname, email, phone):
     _save(users, 'users.json')
     return user
 
-#add user to user's friends list
-def _add_friends(userid, friendids):
-    users = _load('users.json')
-    user = _get(users, userid)
-    for friendid in friendids:
-        user['friends'][friendid] = 'yes'
-            
-
-#remove user from user's friends list
-def _remove_friend(userid, friendid):
-    users = _load('users.json')
-    user = _get(users, userid)
-    if friendid in user['friends']:
-        user['friends'].remove(friendid)
-    return user
-
 #add users to event's guests list and events to users' invitations lists
 def _add_guests(eventid, guestids):
     events = _load('events.json')
     users = _load('users.json')
     event = _get(events, eventid)
+    hostid = event['hostid']
+    host = users[hostid]
     if guestid is event['hostid']: # this line doesn't work. make it work.
         raise AssertionError('cannot invite the host')
     for guestid in guestids:
+        guest = users[guestid]
+        #add guest from event's perspective, event from guest's
         event['guests'][guestid] = 'no'
-        user['invitations'][eventid] = 'no'
-        user['modified']['invitations'][guestid] = 'yes'
-        user['modified']['invitations']['anybody'] = 'yes'
-        users[guestid] = user
+        guest['invitations'][eventid] = 'no'
+        # mark data as modified from guest's perspective
+        guest = _mark_modified(guest, 'invitations', hostid, 'yes')
+        # mark data as modified from host's perspective
+        host = _mark_modified(host, 'events', guestid, 'yes')
+        users[guestid] = guest
+    users[hostid] = host
     events[eventid] = event
     _save(events, 'events.json')
     _save(users, 'users.json')
@@ -139,14 +142,19 @@ def _remove_guests(eventid, guestids):
     events = _load('events.json')
     users = _load('users.json')
     event = _get(events, eventid)
+    hostid = event['hostid']
+    host = users[hostid]
     for guestid in guestids:
         if guestid in event['guests']:
+            guest = users[guestid]
+            # remove the guest from event's perspective, event from guest's
             del event['guests'][guestid]
-            user = users[guestid]
-            del user['invitations'][eventid]
-            user['modified']['invitations'][guestid] = 'yes'
-            user['modified']['invitations']['anybody'] = 'yes'
+            del guest['invitations'][eventid]
+            # mark data as modified from guest's perspective
+            guest = _mark_modified(guest, 'invitations', hostid, 'yes')
+            host = _mark_modified(host, 'events', guestid, 'yes')
             users[guestid] = user
+    users[hostid] = host
     events[eventid] = event
     _save(events, 'events.json')
     _save(users, 'users.json')
@@ -156,7 +164,7 @@ def _add_event(eventid, hostid):
     users = _load('users.json')
     user = _get(users, hostid)
     if eventid not in user['events']:
-         user['events'].append(eventid)
+         user['events'].append(str(eventid))
     return user
 
 def _is_hosting(userid, eventid):
@@ -285,7 +293,7 @@ def add_friend():
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
-        user = _add_friend(userid, friendid)
+        user['friends'].append(friendid)
         users[userid] = user
         _save(users, 'users.json')
         return "yes"
@@ -298,7 +306,13 @@ def add_friends():
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
-        user = 
+        user = _get(users, userid)
+        for friendid in friendids:
+            user['friends'].append(friendid)
+        users[userid] = user
+        _save(users, 'users.json')
+        return "yes"
+    else: return "no"
 
 @route('/remove_friend')
 def remove_friend():
@@ -307,27 +321,66 @@ def remove_friend():
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
-        user = _remove_friend(userid, friendid)
-        #friend = _remove_friend(friendid, userid)
+        user['friends'].remove(friendid)
         users[userid] = user
-        #users[friendid] = friend
         _save(users, 'users.json')
         return "yes"
     else: return "no"
 
+@route('/remove_friends')
+def remove_friends():
+    token = decode(request.GET['token'])
+    friendids = request.GET['friendids'].split(',')
+    if is_authenticated(token):
+        userid = token['userid']
+        users = _load('users.json')
+        user = _get(users, userid)
+        for friendid in friendids:
+            user['friends'].remove(friendid)
+        users[userid] = user
+        _save(users, 'users.json')
+        return "yes"
+    else: return "no"
+    
 @route('/is_modified')
 def is_modified():
     token = decode(request.GET['token'])
     which = request.GET['which'] # I know... this is an awful name.
-    friendid = request.GET.get('friendid', 'anybody')
+    friendid = request.GET.get('friendid', 'all')
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
-        moddata = users[userid]['modified'][which]
-        modified = moddata[friendid]
-        # moddata[friendid] = 'no'
-        return modified
+        modified = friendid in users[userid]['modified'][which]
+        if modified is True: return "yes"
+        else: return 'no'
     else: return 'failed'
+
+@route('/rewrite_database')
+def rewrite_database():
+    key = request.GET.get('key', None)
+    if is_benign(key):
+        events = _load('events.json')
+        users = _load('users.json')
+        for userid, user in users.iteritems():
+            new_invitations = {}
+            print userid, user
+            if isinstance(user, int):
+                continue
+            if isinstance(user['invitations'], dict):
+                continue
+            for eventid in user['invitations']:
+                if eventid not in events.keys():
+                    continue
+                if userid not in events[eventid]['guests'].keys():
+                    continue
+                print events[eventid]['guests']
+                print events[eventid]['guests'][userid]
+                new_invitations[eventid] = events[eventid]['guests'][userid]
+            user['invitations'] = new_invitations
+            users[userid] = user
+        _save(users,'users.json')
+        return json.dumps(events) + json.dumps(users)
+    else: return perror()
 
 @route('/get_events')
 def get_events():
@@ -340,36 +393,45 @@ def get_events():
 @route('/get_my_invitations')
 def get_my_invitations():
     token = decode(request.GET['token'])
-    hostid = request.GET.get('hostid', 'anybody')
+    hostid = request.GET.get('hostid', 'all')
     ret = {}
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
         events = _load('events.json')
         user = _get(users, userid)
-        for eventid, response in user['invitations'].iteritems():
+        # get the events
+        for eventid in user['invitations'].keys():
             event = events[eventid]
-            if hostid is 'anybody' or hostid is event['hostid']:
+            if hostid is 'all' or hostid is event['hostid']:
                 ret[eventid] = event
-        user['modified']['invitations'][hostid] = 'no'
-        #I can't tell if I'm doing this in the right part of the loop anymore.
+        
+        # mark the data as modified
+        user = _mark_modified(user, 'invitations', hostid, 'no')
+        users[userid] = user
+        _save(users, 'users.json')
     return ret
 
 @route('/get_my_events')
 def get_my_events():
     token = decode(request.GET['token'])
-    guestid = request.GET.get('guestid', 'anybody')
+    guestid = request.GET.get('guestid', 'all')
     ret = {}
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
         events = _load('events.json')
         user = _get(users, userid)
+        # get my events
         for eventid in user['events']:
-            event = events[eventid]
-            if guestid is 'anybody' or guestid in event['guests']:
+            event = events[str(eventid)]
+            if guestid is 'all' or guestid in event['guests']:
                 ret[eventid] = event
-        user['modified']['events'][guestid] = 'no'
+
+        #mark the data as modified and save it
+        user = _mark_modified(user, 'events', guestid, "no")
+        users[userid] = user
+        _save(users, 'users.json')
     return ret
 
 @route('/get_event')
@@ -406,7 +468,7 @@ def create_event():
             for guestid in guestids:
                 guests[guestid] = 'no'
         else: guests = {}
-        event = {'eventid': eventid,
+        event = {'eventid': str(eventid),
                  'hostid' : hostid,
                  'name': name,
                  'category': category,
@@ -454,8 +516,8 @@ def update_event():
                 event['description'] = description
             for guestid in event['guests'].keys():
                 guest = users[guestid]
-                guest['modified']['invitations'][userid] = 'yes'
-                guest['modified']['invitations']['anybody'] = 'yes'
+                guest = _mark_modified(guest, 'invitations', userid, 'yes')
+                users[guestid] = guest
             events[eventid] = event
         _save(events, 'events.json')
         _save(users, 'users.json')
@@ -478,8 +540,7 @@ def remove_event():
         for guestid, response in events[eventid]['guests'].iteritems():
             guest = users[guestid]
             del guest['invitations'][eventid]
-            guest['modified']['invitations'][userid] = 'yes'
-            guest['modified']['invitations']['anybody'] = 'yes'
+            guest = _mark_modified(guest, 'invitations', userid, 'yes')
             users[guestid] = guest
         del users[userid]['events'][eventid]
         del events[eventid]
@@ -548,17 +609,22 @@ def update_response():
     token = decode(request.GET['token'])
     guestid = token['userid']
     if is_authenticated(token) and _is_invited(guestid, eventid):
+        #get the event and users
         users = _load('users.json')
         events = _load('events.json')
         event = _get(events, eventid)
         user = _get(users, userid)
         guest = _get(users, guestid)
+
+        # add update response info of guest and event
         event['guests'][guestid] = response
         guest['invitations'][eventid] = response
-        guest['modified']['invitations'][userid] = 'yes'
-        guest['modified']['invitations']['anybody'] = 'yes'
-        user['modified']['events'][guestid] = 'yes'
-        guest['modified']['events']['anybody'] = 'yes'
+        # mark event as modified by guest
+        user = _mark_modified(user, 'events', guestid, 'yes')
+        # mark event as modified from guests' perspective
+        guest = _mark_modified(guest, 'invitations', userid, 'yes')
+        
+        # save the event and users
         events[eventid] = event
         users[guestid] = guest
         users[userid] = user
@@ -587,5 +653,5 @@ server_names['mysslcherrypy'] = MySSLCherryPy
 # run(host='0.0.0.0', port=443, server='mysslcherrypy')
 
 # non secure connection:
-#run(host='0.0.0.0', port=9000)
+run(host='0.0.0.0', port=9000)
 

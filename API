@@ -19,15 +19,16 @@ user = { userid:	userid,
 	 events: 	[ eventid,
 	 		  eventid,
 			  eventid ],
-	 modified: 	{ invitations:  { anybody: "yes",
-	 		  		  friendid: "yes", # of person who mod 
-	 		  		  friendid: "no" },
-			  events:	{ anybody: "yes,
-			  		  friendid: "yes", 
-			  		  friendid: "no" } }
+	 modified: 	{ invitations:  ['all',		# for stream page
+	 		  		 friendid,      # id of person who mod 
+	 		  		 friendid],
+			  events:	['all',		# for my events page
+					  friendid, 
+			  		  friendid] }
 			  # if invitations or events has changed
        	 		  # since the last time that this info
-			  # was retrieved.
+			  # was retrieved. if neither yes or no, then assume
+			  # that there is nothing of interest (i.e. no)
        }
 
 
@@ -57,9 +58,12 @@ Requires no authentication:
 Requires key:
 	 get_users, get_user, create_user, get_events
 Requires token:
-	 get_auth, update_user, get_friends, add_friend, remove_friend,
-	 get_event, create_event, update_event, get_guests, add_guest,
-	 remove_guest, update_response
+	 get_auth, get_self, update_user, get_friends, add_friend, 
+	 add_friends, remove_friend, remove_friends, is_modified,
+	 get_my_invitations, get_my_events, 
+	 get_event, create_event, update_event, remove_event, 
+	 get_guests, add_guest, add_guests, remove_guest, remove_guests,
+	 update_response
 
 Please let me know if you think that security levels should change
 in any way or that we are missing some functions.
@@ -109,7 +113,7 @@ method get_friends:
        returns: friends
        access: this user
 
-method add_friend:
+method add_friend:				#DEPRECATED, PLEASE PHASE OUT
        takes:	friendid, token
        returns: "yes" or "no"
        access: this user
@@ -119,7 +123,7 @@ method add_friends:
        returns: "yes" or "no"
        access: this user
 
-method remove_friend:
+method remove_friend:				#DEPRECATED, PLEASE PHASE OUT
        takes:	friendid, token
        returns: "yes" or "no"
        access: this user
