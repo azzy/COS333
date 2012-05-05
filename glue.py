@@ -2,7 +2,7 @@
 
 from bottle import route, run, request, server_names, ServerAdapter
 import bottle
-import string
+import string, re, time
 import json
 import hmac
 import hashlib
@@ -109,6 +109,7 @@ def _update_user(userid, name, lastname, email, phone):
         user['email'] = email
     if phone is not None:
         user['phone'] = phone
+    user['time'] = time.time()
     users[userid] = user
     _save(users, 'users.json')
     return user
@@ -177,6 +178,27 @@ def _is_invited(userid, eventid):
     user = users[userid]
     return user['invitations'].has_key(eventid)
 
+# --------------------------------- REGEX HELPERS----------------------------#
+
+def _like(a, b):
+    # returns True if string a is like substring b
+    pattern = re.compile(b + ".*")
+    return pattern.search(a) is not None
+
+def _starts_with(a, b):
+    # returns True if string a starts with substring b
+    pattern = re.compile(b + ".*")
+    return pattern.match(a) is not None
+
+def _intersect(a, b):
+    # returns True if at least half of list b is in list a
+    match = 0
+    if a is None or b is None: return True
+    for item in a:
+        if item in b:
+            match += 1
+    return (match / len(b)) > 0.5
+
 # ------------------------------ INTERFACE ------------------------------- #
 # note: still need to go through and proof everything my error proofing is so off.
 @route('/login')
@@ -192,6 +214,40 @@ def login():
             userid = entry['userid']
             return encode({'userid': userid, 'token':gen_token(str(userid))})
     return "Authentication Failed"
+
+@route('/find_users')
+def find_users():
+    key = request.GET['key']
+    try: 
+        name = request.GET['name'].split()
+        firstname = name[0]
+        try: lastname = name[1]
+        except: lastname = ''
+    except: 
+        firstname = ''
+        lastname = ''
+    #search snippet includes first and last
+    email = request.GET.get('email', '') #search snippet is beginning of email
+    phone = request.GET.get('phone', '') #search snippet is part of phone number
+    try: friendids = request.GET['friendids'].split(',') 
+    except: friendids = None
+    # list of some friends this friend is friends with
+    # this should return in ranked order of number of friends matche
+    if is_benign(key):
+        ret = []
+        users = _load('users.json')
+        for userid, user in users.iteritems():
+            if isinstance(user, int): continue
+            if _starts_with(user['name'], firstname)\
+                    and _starts_with(user['lastname'], lastname)\
+                    and _starts_with(user['email'], email)\
+                    and _starts_with(user['phone'], phone) \
+                    and _intersect(user['friends'], friendids):
+                ret.append(user)
+#note I'm going to get errors here until I add in the phone
+            else: continue
+        return json.dumps(ret)
+    else: return perror()
 
 @route('/get_users')
 def get_users():
@@ -240,6 +296,12 @@ def create_user():
     phone = request.GET.get('phone', '')
     password = request.GET['password']
     if is_benign(key):
+        auth = _load('auth.json')
+        # check if a user exists with this email
+        for userid, entry in auth.iteritems():
+            if entry['email'] is email:
+                return "a user already exists with this email address"
+        # add user if it doesn't already exist.
         user = _update_user(None, name, lastname, email, phone)
         _update_auth(user['userid'], email, password) #function handles the sha
         return json.dumps(user)
@@ -366,17 +428,7 @@ def rewrite_database():
             print userid, user
             if isinstance(user, int):
                 continue
-            if isinstance(user['invitations'], dict):
-                continue
-            for eventid in user['invitations']:
-                if eventid not in events.keys():
-                    continue
-                if userid not in events[eventid]['guests'].keys():
-                    continue
-                print events[eventid]['guests']
-                print events[eventid]['guests'][userid]
-                new_invitations[eventid] = events[eventid]['guests'][userid]
-            user['invitations'] = new_invitations
+            else: #user['phone'] = str(random.randint(1000000000, 9999999999))
             users[userid] = user
         _save(users,'users.json')
         return json.dumps(events) + json.dumps(users)

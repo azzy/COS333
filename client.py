@@ -34,6 +34,7 @@ def decode(s):
 req_none = ['login']
 req_key = ['get_users',
            'create_user',
+           'find_users',
            'get_events',
            'get_user',
            'rewrite_database'
@@ -70,6 +71,7 @@ def app():
     args['name'] = request.GET.get('name', '')
     args['lastname'] = request.GET.get('lastname', '')
     args['email'] = request.GET.get('email','')
+    args['phone'] = request.GET.get('phone', '')
     args['password'] = request.GET.get('password','')
     args['eventid'] = request.GET.get('eventid', '')
     args['friendid'] = request.GET.get('friendid', '')

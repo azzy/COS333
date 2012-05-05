@@ -19,6 +19,7 @@ user = { userid:	userid,
 	 events: 	[ eventid,
 	 		  eventid,
 			  eventid ],
+	 time:		  time-last-modified,
 	 modified: 	{ invitations:  ['all',		# for stream page
 	 		  		 friendid,      # id of person who mod 
 	 		  		 friendid],
@@ -72,6 +73,11 @@ method login:
        takes: email, password
        returns: token, userid
        access: All
+
+method find_users:
+       takes: key, name, email, phone, friendids (only key is required)
+       returns: list of users that match query
+       access: Us
 
 method get_users:
        takes: key
