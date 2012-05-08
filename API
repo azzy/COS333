@@ -19,7 +19,6 @@ user = { userid:	userid,
 	 events: 	[ eventid,
 	 		  eventid,
 			  eventid ],
-	 time:		  time-last-modified,
 	 modified: 	{ invitations:  ['all',		# for stream page
 	 		  		 friendid,      # id of person who mod 
 	 		  		 friendid],
@@ -76,7 +75,12 @@ method login:
 
 method find_users:
        takes: key, name, email, phone, friendids (only key is required)
-       returns: list of users that match query
+       returns: dictionary of userids => users that match query
+       access: Us
+
+method search_users:
+       takes: key, q
+       returns: dictionary of userids => users that match query
        access: Us
 
 method get_users:
@@ -101,7 +105,7 @@ method get_auth:
 
 method create_user:
        takes:	name, lastname, email, password, key
-       returns:	user
+       returns:	"yes", "User already exists" or perror
        access: Us
 
 method update_user:
@@ -116,21 +120,11 @@ method remove_user:
 
 method get_friends:
        takes: token
-       returns: friends
-       access: this user
-
-method add_friend:				#DEPRECATED, PLEASE PHASE OUT
-       takes:	friendid, token
-       returns: "yes" or "no"
+       returns: dictionary of friendid => friend
        access: this user
 
 method add_friends:
        takes:	token, friendids (delimited by ",")
-       returns: "yes" or "no"
-       access: this user
-
-method remove_friend:				#DEPRECATED, PLEASE PHASE OUT
-       takes:	friendid, token
        returns: "yes" or "no"
        access: this user
 
@@ -181,21 +175,11 @@ method remove_event:
 
 method get_guests:
        takes:	eventid, token
-       returns: guests
+       returns: guests (json array of guestid => guest)
        access: anyone invited or hosting this event
-
-method add_guest:     	      	 	      #DEPRECATED PLEASE PHASE OUT
-       takes:   eventid, guestid, token
-       returns: "yes" or "no"
-       access: host
 
 method add_guests:
        takes:	eventid, token, guestids (delimited with ",")
-       returns: "yes" or "no"
-       access: host
-
-method remove_guest:				#DEPRECATED PLEASE PHASE OUT
-       takes:   eventid, guestid, token
        returns: "yes" or "no"
        access: host
 

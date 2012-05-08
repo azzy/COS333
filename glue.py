@@ -13,7 +13,7 @@ import hashlib
 secret_key = "okXRDgXqnDfyYK11nARRIdUy5xmuGsJi00DQuyzaGYY"
 
 def perror():
-    return "Intruder Alert!"
+    return "Authentication Failed"
 
 def is_benign(key):
     global secret_key
@@ -93,7 +93,7 @@ def _update_auth(userid, email, password):
 def _update_user(userid, name, lastname, email, phone):
     users = _load('users.json')
     if userid is None:
-        userid = users['lastindex'] + 1
+        userid = str(users['lastindex'] + 1)
         users['lastindex'] += 1
     user = users.get(userid, {'friends':[],\
                               'invitations':{},\
@@ -109,7 +109,7 @@ def _update_user(userid, name, lastname, email, phone):
         user['email'] = email
     if phone is not None:
         user['phone'] = phone
-    user['time'] = time.time()
+    #user['time'] = time.time()
     users[userid] = user
     _save(users, 'users.json')
     return user
@@ -121,9 +121,9 @@ def _add_guests(eventid, guestids):
     event = _get(events, eventid)
     hostid = event['hostid']
     host = users[hostid]
-    if guestid is event['hostid']: # this line doesn't work. make it work.
-        raise AssertionError('cannot invite the host')
     for guestid in guestids:
+        if guestid is event['hostid']:
+            raise AssertionError('cannot invite the host')
         guest = users[guestid]
         #add guest from event's perspective, event from guest's
         event['guests'][guestid] = 'no'
@@ -165,7 +165,7 @@ def _add_event(eventid, hostid):
     users = _load('users.json')
     user = _get(users, hostid)
     if eventid not in user['events']:
-         user['events'].append(str(eventid))
+         user['events'].append(eventid)
     return user
 
 def _is_hosting(userid, eventid):
@@ -182,13 +182,13 @@ def _is_invited(userid, eventid):
 
 def _like(a, b):
     # returns True if string a is like substring b
-    pattern = re.compile(b + ".*")
-    return pattern.search(a) is not None
+    pattern = re.compile(b.lower() + ".*")
+    return pattern.search(a.lower()) is not None
 
 def _starts_with(a, b):
     # returns True if string a starts with substring b
-    pattern = re.compile(b + ".*")
-    return pattern.match(a) is not None
+    pattern = re.compile(b.lower() + ".*")
+    return pattern.match(a.lower()) is not None
 
 def _intersect(a, b):
     # returns True if at least half of list b is in list a
@@ -227,28 +227,51 @@ def find_users():
         firstname = ''
         lastname = ''
     #search snippet includes first and last
-    email = request.GET.get('email', '') #search snippet is beginning of email
+    email = request.GET.get('email', '') #search snippet is in email
     phone = request.GET.get('phone', '') #search snippet is part of phone number
     try: friendids = request.GET['friendids'].split(',') 
     except: friendids = None
     # list of some friends this friend is friends with
     # this should return in ranked order of number of friends matche
     if is_benign(key):
-        ret = []
+        ret = {}
         users = _load('users.json')
         for userid, user in users.iteritems():
             if isinstance(user, int): continue
             if _starts_with(user['name'], firstname)\
                     and _starts_with(user['lastname'], lastname)\
-                    and _starts_with(user['email'], email)\
+                    and _like(user['email'], email)\
                     and _starts_with(user['phone'], phone) \
                     and _intersect(user['friends'], friendids):
-                ret.append(user)
+                ret[user['userid']] = user
 #note I'm going to get errors here until I add in the phone
             else: continue
         return json.dumps(ret)
     else: return perror()
 
+@route('/search_users')
+def search_users():
+    key = request.GET['key']
+    name = request.GET['q'].split()
+    firstname = name[0]
+    try: lastname = name[1]
+    except: lastname = ''
+    q = request.GET['q']
+    if is_benign(key):
+        ret = {}
+        users = _load('users.json')
+        for userid, user in users.iteritems():
+            if isinstance(user, int): continue
+            if _starts_with(user['name'], firstname)\
+                    and _starts_with(user['lastname'], lastname)\
+                    or _like(user['email'], q)\
+                    or _starts_with(user['phone'], q)\
+                    or _starts_with(user['lastname'], q):
+                ret[user['userid']] = user
+            else: continue
+        return json.dumps(ret)
+    else: return perror()
+        
 @route('/get_users')
 def get_users():
     key = request.GET.get('key', None)
@@ -299,12 +322,12 @@ def create_user():
         auth = _load('auth.json')
         # check if a user exists with this email
         for userid, entry in auth.iteritems():
-            if entry['email'] is email:
-                return "a user already exists with this email address"
+            if entry['email'] == email:
+                return "User already exists"
         # add user if it doesn't already exist.
         user = _update_user(None, name, lastname, email, phone)
         _update_auth(user['userid'], email, password) #function handles the sha
-        return json.dumps(user)
+        return "yes"
     else: return perror()
     
 @route('/update_user')
@@ -345,21 +368,12 @@ def get_friends():
         userid = token['userid']
         users = _load('users.json')
         user = _get(users, userid)
-        return json.dumps(user['friends'])
+        ret = {}
+        for friendid in user['friends']:
+            try: ret[friendid] = users[friendid]
+            except: print "no user with id", friendid
+        return json.dumps(ret)
     else: return perror()
-
-@route('/add_friend')
-def add_friend():
-    token = decode(request.GET['token'])
-    friendid = request.GET['friendid']
-    if is_authenticated(token):
-        userid = token['userid']
-        users = _load('users.json')
-        user['friends'].append(friendid)
-        users[userid] = user
-        _save(users, 'users.json')
-        return "yes"
-    else: return "no"
 
 @route('/add_friends')
 def add_friends():
@@ -376,19 +390,6 @@ def add_friends():
         return "yes"
     else: return "no"
 
-@route('/remove_friend')
-def remove_friend():
-    friendid = request.GET['friendid']
-    token = decode(request.GET['token'])
-    if is_authenticated(token):
-        userid = token['userid']
-        users = _load('users.json')
-        user['friends'].remove(friendid)
-        users[userid] = user
-        _save(users, 'users.json')
-        return "yes"
-    else: return "no"
-
 @route('/remove_friends')
 def remove_friends():
     token = decode(request.GET['token'])
@@ -398,7 +399,8 @@ def remove_friends():
         users = _load('users.json')
         user = _get(users, userid)
         for friendid in friendids:
-            user['friends'].remove(friendid)
+            try: user['friends'].remove(friendid)
+            except: "no friends with id", friendid
         users[userid] = user
         _save(users, 'users.json')
         return "yes"
@@ -419,19 +421,17 @@ def is_modified():
 
 @route('/rewrite_database')
 def rewrite_database():
+    import random
     key = request.GET.get('key', None)
     if is_benign(key):
         events = _load('events.json')
         users = _load('users.json')
+        auth = _load('auth.json')
         for userid, user in users.iteritems():
-            new_invitations = {}
             print userid, user
-            if isinstance(user, int):
-                continue
-            else: #user['phone'] = str(random.randint(1000000000, 9999999999))
-            users[userid] = user
-        _save(users,'users.json')
-        return json.dumps(events) + json.dumps(users)
+        for userid, entry in auth.iteritems():
+            if isinstance(entry, int): continue
+        return json.dumps(counts), json.dumps(auth_counts), json.dumps(ids_to_delete)
     else: return perror()
 
 @route('/get_events')
@@ -455,7 +455,9 @@ def get_my_invitations():
         # get the events
         for eventid in user['invitations'].keys():
             event = events[eventid]
-            if hostid is 'all' or hostid is event['hostid']:
+            print hostid, event['hostid']
+            print hostid == event['hostid']
+            if hostid is 'all' or hostid == event['hostid']:
                 ret[eventid] = event
         
         # mark the data as modified
@@ -476,7 +478,7 @@ def get_my_events():
         user = _get(users, userid)
         # get my events
         for eventid in user['events']:
-            event = events[str(eventid)]
+            event = events[eventid]
             if guestid is 'all' or guestid in event['guests']:
                 ret[eventid] = event
 
@@ -514,13 +516,13 @@ def create_event():
         hostid = token['userid']
         events = _load('events.json')
         users = _load('users.json')
-        eventid = events['lastindex'] + 1
+        eventid = str(events['lastindex'] + 1)
         events['lastindex'] += 1
         if guestids is not None:
             for guestid in guestids:
                 guests[guestid] = 'no'
         else: guests = {}
-        event = {'eventid': str(eventid),
+        event = {'eventid': eventid,
                  'hostid' : hostid,
                  'name': name,
                  'category': category,
@@ -594,7 +596,8 @@ def remove_event():
             del guest['invitations'][eventid]
             guest = _mark_modified(guest, 'invitations', userid, 'yes')
             users[guestid] = guest
-        del users[userid]['events'][eventid]
+        print userid, eventid, json.dumps(users[userid])
+        users[userid]['events'].remove(eventid)
         del events[eventid]
         _save(users, 'users.json')
         _save(events, 'events.json')
@@ -609,20 +612,15 @@ def get_guests():
     if is_authenticated(token) \
             and _is_hosting(userid, eventid) \
             or _is_invited(userid, eventid):
+        users = _load('users.json')
         events = _load('events.json')
         event = _get(events, eventid)
-        return json.dumps(event['guests'])
+        ret = {}
+        for guestid in event['guests']:
+            try: ret[guestid] = users[guestid]
+            except: print "user with id does not exist:", guestid
+        return json.dumps(ret)
     else: return perror()
-
-@route('/add_guest')
-def add_guest():
-    eventid = request.GET['eventid']
-    guestid = request.GET['guestid']
-    token = decode(request.GET['token'])
-    if is_authenticated(token) and _is_hosting(token['userid'], eventid):
-        _add_guests(eventid, [guestid])
-        return "yes"
-    else: return "no"
 
 @route('/add_guests')
 def add_guests():
@@ -631,16 +629,6 @@ def add_guests():
     token = decode(request.GET['token'])
     if is_authenticated(token) and _is_hosting(token['userid'], eventid):
         _add_guests(eventid, guestids)
-        return "yes"
-    else: return "no"
-
-@route('/remove_guest')
-def remove_guest():
-    token = decode(request.GET['token'])
-    eventid = request.GET['eventid']
-    guestid = request.GET['guestid']
-    if is_authenticated(token) and _is_hosting(token['userid'], eventid):
-        _remove_guests(eventid, [guestid])
         return "yes"
     else: return "no"
 

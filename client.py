@@ -35,6 +35,7 @@ req_none = ['login']
 req_key = ['get_users',
            'create_user',
            'find_users',
+           'search_users',
            'get_events',
            'get_user',
            'rewrite_database'
@@ -81,15 +82,17 @@ def app():
     args['starttime'] = request.GET.get('starttime', '')
     args['endtime'] = request.GET.get('endtime', '')
     args['description'] = request.GET.get('description','')
+    args['hostid'] = request.GET.get('hostid', '')
     args['guestid'] = request.GET.get('guestid', '')
     args['guestids'] = request.GET.get('guestids', '')
     args['userid'] = request.GET.get('userid', '')
     args['response'] = request.GET.get('response', '')
     args['which'] = request.GET.get('which', '')
+    args['q'] = request.GET.get('q', '')
     
 #    sig = encode({ 'method': method, 'sig': make_digest(method) })
     key = secret_key
-    host = 'http://localhost:9000'
+    host = 'http://localhost'
     url = host + '/' + method
     if method in req_tok:
         url += '?token=' + token
