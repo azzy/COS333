@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from bottle import route, run, request, server_names, ServerAdapter
+from bottle import route, run, request, server_names, ServerAdapter, static_file
 import bottle
 import string, re, time
 import json
@@ -12,8 +12,13 @@ import hashlib
 # ---------------------------- AUTH HELPERS ------------------------------ #
 secret_key = "okXRDgXqnDfyYK11nARRIdUy5xmuGsJi00DQuyzaGYY"
 
-def perror():
-    return "Authentication Failed"
+def perror(code):
+    if code == 0:
+        return "Authentication Failed"
+    if code == 1:
+        return "Event does not exist"
+    if code == 2:
+        return "User does not exist"
 
 def is_benign(key):
     global secret_key
@@ -69,14 +74,13 @@ def _load(filename):
 #auth = json.loads(open('auth.json', 'r').read())
 
 def _mark_modified(user, which, friendid, status):
-    if not user.has_key('modified'):
-        user['modified'] = { 'invitations': [],
-                             'events': [] }
     if status is "yes" and friendid not in user['modified'][which]:
         user['modified'][which].append(friendid)
+    if status is "yes" and 'all' not in user['modified'][which]:
         user['modified'][which].append('all')
-    elif friendid in user['modified'][which]:
+    if status is "no" and friendid in user['modified'][which]:
         user['modified'][which].remove(friendid)
+    print json.dumps(user)
     return user
 
 def _update_auth(userid, email, password):
@@ -118,13 +122,23 @@ def _update_user(userid, name, lastname, email, phone):
 def _add_guests(eventid, guestids):
     events = _load('events.json')
     users = _load('users.json')
-    event = _get(events, eventid)
+    try: event = events[eventid]
+    except: 
+        print perror(1), eventid
+        return
     hostid = event['hostid']
-    host = users[hostid]
+    try: host = users[hostid]
+    except:
+        print perror(2), hostid, "so removed event"
+        _remove_event(eventid)
+        return
     for guestid in guestids:
-        if guestid is event['hostid']:
+        if guestid == event['hostid']:
             raise AssertionError('cannot invite the host')
-        guest = users[guestid]
+        try: guest = users[guestid]
+        except:
+            print perror(2), guestid
+            continue
         #add guest from event's perspective, event from guest's
         event['guests'][guestid] = 'no'
         guest['invitations'][eventid] = 'no'
@@ -142,19 +156,33 @@ def _add_guests(eventid, guestids):
 def _remove_guests(eventid, guestids):
     events = _load('events.json')
     users = _load('users.json')
-    event = _get(events, eventid)
+    try: event = events[eventid]
+    except:
+        print perror(1), eventid
+        return
     hostid = event['hostid']
-    host = users[hostid]
+    try: host = users[hostid]
+    except:
+        print perror(2), hostid, "so removed event"
+        _remove_event(eventid)
+        return
     for guestid in guestids:
         if guestid in event['guests']:
-            guest = users[guestid]
+            try: guest = users[guestid]
+            except:
+                print "user does not exist with id", guestid
+                del event['guests'][guestid]
+                host = _mark_modified(host, 'events', guestid, 'yes')
+                events[eventid] = event
+                _save(events, 'events.json')
+                return
             # remove the guest from event's perspective, event from guest's
             del event['guests'][guestid]
             del guest['invitations'][eventid]
             # mark data as modified from guest's perspective
             guest = _mark_modified(guest, 'invitations', hostid, 'yes')
             host = _mark_modified(host, 'events', guestid, 'yes')
-            users[guestid] = user
+            users[guestid] = guest
     users[hostid] = host
     events[eventid] = event
     _save(events, 'events.json')
@@ -163,7 +191,7 @@ def _remove_guests(eventid, guestids):
 #add event to user's events list
 def _add_event(eventid, hostid):
     users = _load('users.json')
-    user = _get(users, hostid)
+    user = users[hostid]
     if eventid not in user['events']:
          user['events'].append(eventid)
     return user
@@ -200,7 +228,6 @@ def _intersect(a, b):
     return (match / len(b)) > 0.5
 
 # ------------------------------ INTERFACE ------------------------------- #
-# note: still need to go through and proof everything my error proofing is so off.
 @route('/login')
 def login():
     auth = _load('auth.json')
@@ -247,7 +274,7 @@ def find_users():
 #note I'm going to get errors here until I add in the phone
             else: continue
         return json.dumps(ret)
-    else: return perror()
+    else: return perror(0)
 
 @route('/search_users')
 def search_users():
@@ -270,7 +297,7 @@ def search_users():
                 ret[user['userid']] = user
             else: continue
         return json.dumps(ret)
-    else: return perror()
+    else: return perror(0)
         
 @route('/get_users')
 def get_users():
@@ -278,7 +305,7 @@ def get_users():
     if is_benign(key):
         users = _load('users.json')
         return json.dumps(users)
-    else: return perror()
+    else: return perror(0)
 
 @route('/get_user')
 def get_user():
@@ -286,9 +313,10 @@ def get_user():
     key = request.GET.get('key', None)
     if is_benign(key):
         users = _load('users.json')
-        user = _get(users, userid)
+        try: user = users[userid]
+        except: return perror(2), userid
         return json.dumps(user)
-    else: return perror()
+    else: return perror(0)
 
 @route('/get_self')
 def get_self():
@@ -296,9 +324,10 @@ def get_self():
     if is_authenticated(token):
         userid = token['userid']
         users = _load('users.json')
-        user = _get(users, userid)
+        try: user = users[userid]
+        except: return perror(2), userid
         return json.dumps(user)
-    else: return perror()
+    else: return perror(0)
 
 @route('/get_auth')
 def get_auth():
@@ -306,9 +335,10 @@ def get_auth():
     if is_authenticated(token):
         userid = token['userid']
         auth = _load('auth.json')
-        entry = _get(auth, userid)
+        try: entry = auth[userid]
+        except: return perror(2), userid
         return json.dumps(entry)
-    else: return perror()
+    else: return perror(0)
 
 @route('/create_user')
 def create_user():
@@ -328,7 +358,7 @@ def create_user():
         user = _update_user(None, name, lastname, email, phone)
         _update_auth(user['userid'], email, password) #function handles the sha
         return "yes"
-    else: return perror()
+    else: return perror(0)
     
 @route('/update_user')
 def update_user():
@@ -340,10 +370,16 @@ def update_user():
     token = decode(request.GET['token'])
     if is_authenticated(token):
         userid = token['userid']
-        _update_auth(userid, email, password)
+        users = _load('users.json')
+        auth = _load('auth.json')
+        try: user = users[userid]
+        except: return perror(2)
+        try: entry = auth[userid]
+        except: return perror(2)
+        _update_auth(userid, email, password) # rewrite this function
         user = _update_user(userid, name, lastname, email, phone)
         return user
-    else: return perror()
+    else: return perror(0)
 
 @route('/remove_user')
 def remove_user():
@@ -354,6 +390,15 @@ def remove_user():
         userid = token['userid']
         users = _load('users.json')
         auth = _load('auth.json')
+        events = _load('events.json')
+        #remove all traces
+        for eventid, event in events.iteritems():
+            if isinstance(event, int): continue
+            if _is_hosting(userid, eventid):
+                _remove_event(eventid)
+            elif _is_invited(userid, eventid):
+                _remove_guests(eventid, [userid])
+        #remove the user
         del users[userid]
         del auth[userid]
         _save(users, 'users.json')
@@ -371,9 +416,13 @@ def get_friends():
         ret = {}
         for friendid in user['friends']:
             try: ret[friendid] = users[friendid]
-            except: print "no user with id", friendid
+            except: 
+                print "no user with id", friendid
+                user['friends'].remove(friendid)
+        users[userid] = user
+        _save(users, 'users.json')
         return json.dumps(ret)
-    else: return perror()
+    else: return perror(0)
 
 @route('/add_friends')
 def add_friends():
@@ -432,7 +481,7 @@ def rewrite_database():
         for userid, entry in auth.iteritems():
             if isinstance(entry, int): continue
         return json.dumps(counts), json.dumps(auth_counts), json.dumps(ids_to_delete)
-    else: return perror()
+    else: return perror(0)
 
 @route('/get_events')
 def get_events():
@@ -440,7 +489,7 @@ def get_events():
     if is_benign(key):
         events = _load('events.json')
         return json.dumps(events)
-    else: return perror()
+    else: return perror(0)
 
 @route('/get_my_invitations')
 def get_my_invitations():
@@ -454,13 +503,16 @@ def get_my_invitations():
         user = _get(users, userid)
         # get the events
         for eventid in user['invitations'].keys():
-            event = events[eventid]
+            try: event = events[eventid]
+            except: 
+                print perror(1), eventid
+                del user['invitations'][eventid]
             print hostid, event['hostid']
             print hostid == event['hostid']
             if hostid is 'all' or hostid == event['hostid']:
                 ret[eventid] = event
         
-        # mark the data as modified
+        # mark the data as not modified
         user = _mark_modified(user, 'invitations', hostid, 'no')
         users[userid] = user
         _save(users, 'users.json')
@@ -478,11 +530,14 @@ def get_my_events():
         user = _get(users, userid)
         # get my events
         for eventid in user['events']:
-            event = events[eventid]
+            try: event = events[eventid]
+            except:
+                print perror(1), eventid
+                del event['events'][eventid]
             if guestid is 'all' or guestid in event['guests']:
                 ret[eventid] = event
 
-        #mark the data as modified and save it
+        #mark the data as not modified
         user = _mark_modified(user, 'events', guestid, "no")
         users[userid] = user
         _save(users, 'users.json')
@@ -492,14 +547,16 @@ def get_my_events():
 def get_event():
     token = decode(request.GET['token'])
     if not is_authenticated(token):
-        return perror() + ' on token'
+        return perror(0) + ' on token'
     eventid = request.GET.get('eventid', None)
     events = _load('events.json')
-    event = _get(events, eventid)
+    try: event = events[eventid]
+    except:
+        return perror(1), eventid
     userid = token['userid']
     if _is_hosting(userid, eventid) or _is_invited(userid, eventid):
         return json.dumps(event)
-    else: return perror() + ' on userid'
+    else: return perror(0) + ' on userid'
 
 @route('/create_event')
 def create_event():
@@ -518,10 +575,7 @@ def create_event():
         users = _load('users.json')
         eventid = str(events['lastindex'] + 1)
         events['lastindex'] += 1
-        if guestids is not None:
-            for guestid in guestids:
-                guests[guestid] = 'no'
-        else: guests = {}
+        guests = {}
         event = {'eventid': eventid,
                  'hostid' : hostid,
                  'name': name,
@@ -537,8 +591,11 @@ def create_event():
         users[hostid] = user
         _save(events, 'events.json')
         _save(users, 'users.json')
+        if guestids is not None:
+            _add_guests(eventid, guestids)
+        event = _load('events.json').get(eventid, '')
         return json.dumps(event)
-    else: return perror()
+    else: return perror(0)
 
 @route('/update_event')
 def update_event():
@@ -555,7 +612,8 @@ def update_event():
         if _is_hosting(userid, eventid):
             events = _load('events.json')
             users = _load('users.json')
-            event = _get(events, eventid)
+            try: event = events[eventid]
+            except: return perror(1)
             if name is not None:
                 event['name'] = name
             if category is not None:
@@ -569,15 +627,39 @@ def update_event():
             if description is not None:
                 event['description'] = description
             for guestid in event['guests'].keys():
-                guest = users[guestid]
+                try: guest = users[guestid]
+                except:
+                    print perror(2), guestid
+                    del event['guests'][guestid]
                 guest = _mark_modified(guest, 'invitations', userid, 'yes')
                 users[guestid] = guest
             events[eventid] = event
         _save(events, 'events.json')
         _save(users, 'users.json')
         return json.dumps(event)
-    else: return perror()
+    else: return perror(0)
 
+def _remove_event(eventid):
+    try:
+        users = _load('users.json')
+        events = _load('events.json')
+        event = events[eventid]
+        for guestid, response in event['guests'].iteritems():
+            try: 
+                guest = users[guestid]
+                del guest['invitations'][eventid]
+                guest = _mark_modified(guest, 'invitations', event['hostid'], 'yes')
+                users[guestid] = guest
+            except:
+                print perror(2), guestid
+        try: users[event['hostid']]['events'].remove(eventid)
+        except: print perror(2), event['hostid']
+        del events[eventid]
+        _save(users, 'users.json')
+        _save(events, 'events.json')
+        return "yes"
+    except: return "no"
+        
 @route('/remove_event')
 def remove_event():
     eventid = request.GET['eventid']
@@ -591,17 +673,7 @@ def remove_event():
     if eventid not in events:
         return "event does not exist"
     if _is_hosting(userid, eventid):
-        for guestid, response in events[eventid]['guests'].iteritems():
-            guest = users[guestid]
-            del guest['invitations'][eventid]
-            guest = _mark_modified(guest, 'invitations', userid, 'yes')
-            users[guestid] = guest
-        print userid, eventid, json.dumps(users[userid])
-        users[userid]['events'].remove(eventid)
-        del events[eventid]
-        _save(users, 'users.json')
-        _save(events, 'events.json')
-        return "yes"
+        return _remove_event(eventid)
     else: return "no"
 
 @route('/get_guests')
@@ -616,11 +688,13 @@ def get_guests():
         events = _load('events.json')
         event = _get(events, eventid)
         ret = {}
-        for guestid in event['guests']:
+        for guestid in event['guests'].iterkeys():
             try: ret[guestid] = users[guestid]
-            except: print "user with id does not exist:", guestid
+            except: 
+                print perror(2), guestid
+                del event['guests'][guestid]
         return json.dumps(ret)
-    else: return perror()
+    else: return perror(0)
 
 @route('/add_guests')
 def add_guests():
@@ -652,26 +726,42 @@ def update_response():
         #get the event and users
         users = _load('users.json')
         events = _load('events.json')
-        event = _get(events, eventid)
-        user = _get(users, userid)
-        guest = _get(users, guestid)
+        try: event = events[eventid]
+        except: return perror(1)
+        try: host = users[event['hostid']]
+        except:
+            print perror(2), event['hostid']
+            _remove_event(eventid)
+            return perror(2) + " on hostid, deleted the event"
+        try: guest = _get(users, guestid)
+        except: return perror(2) + " on token's userid"
 
         # add update response info of guest and event
         event['guests'][guestid] = response
         guest['invitations'][eventid] = response
         # mark event as modified by guest
-        user = _mark_modified(user, 'events', guestid, 'yes')
+        host = _mark_modified(host, 'events', guestid, 'yes')
         # mark event as modified from guests' perspective
-        guest = _mark_modified(guest, 'invitations', userid, 'yes')
+        guest = _mark_modified(guest, 'invitations', event['hostid'], 'yes')
         
         # save the event and users
         events[eventid] = event
         users[guestid] = guest
-        users[userid] = user
+        users[event['hostid']] = host
         _save(events, 'events.json')
         _save(users, 'users.json')
         return "yes"
     else: return "no"
+
+# ----------------------- STATIC CONTENT/ABOUT INFO ---------------------------#
+@route('/static/<filename>')
+def server_static(filename):
+    return static_file(filename, root='/var/www/glue/static')
+
+@route('/')
+def home():
+    html = open('../html/index.html', 'r').read()
+    return html
 
 # ----------------------- ROUTING/AUTH & RUNNING ---------------------------#
 

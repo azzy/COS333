@@ -56,7 +56,7 @@ Quick list of authentication requirements:
 Requires no authentication: 
 	 login
 Requires key:
-	 get_users, get_user, create_user, get_events
+	 get_users, get_user, create_user, get_events, find_users, search_users
 Requires token:
 	 get_auth, get_self, update_user, get_friends, add_friend, 
 	 add_friends, remove_friend, remove_friends, is_modified,
