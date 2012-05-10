@@ -1,0 +1,60 @@
+Client Side-------------------------------------------------------------------
+Use NSURLRequest and NSURLConnection
+http://stackoverflow.com/questions/4085978/json-post-request-on-the-iphone-usin
+g-https
+https://developer.apple.com/library/ios/#samplecode/AdvancedURLConnections/Intr
+oduction/Intro.html#//apple_ref/doc/uid/DTS40009558-Intro-DontLinkElementID_2
+http://developer.apple.com/library/mac/#documentation/Security/Conceptual/CertK
+eyTrustProgGuide/01introduction/introduction.html#//apple_ref/doc/uid/TP4000135
+8-CH203-DontLinkElementID_11
+
+//send the certificate attached to the identity (identity is a SecIdentityRef)
+[request setClientCertificateIdentity:identity];
+
+//add an additional certificate where cert is a SecCertificateRef
+[request setClientCertificates:[NSArray arrayWithObject:(id)cert]];
+
+There is a helper function in ClientCertificateTests.m that can create a 
+SecIdentityRef fro PKCS12 data
+
+Server Side ------------------------------------------------------------------
+http://www.thebuzzmedia.com/designing-a-secure-rest-api-without-oauth-authentication/
+
+
+====================================================================================
+Doing it hacky because it's easier:
+n = secret key, known to app and server
+m = request
+r = response
+p = sha(password)	need to choose a max length, e.g. 160bit (20 character)
+    		 	note this can't be unique among users.
+
+---------------------------------------
+| Creating User or Updating Password: |
+---------------------------------------
+Client				 Server
+------			 	--------
+hmac(n, (uid, p)) ----------> add to database
+check if yes      <---------  hmac(p, yes)
+
+---------------------------------------
+|	    Logging in:		       |
+----------------------------------------
+Client					Server
+-------			  		-------
+hmac(n, (uid, p))      -----------> verify (uid, p) in database
+verify (uid, p) matches <--------- hmac(n, (uid*, p*)) (where * indicates decrypted)
+
+---------------------------------------
+|	    Making Requests	       |
+----------------------------------------
+Client					Server
+------					-------
+hmac(p, (uid, m))       -----------> process request
+		       <---------- hmac(p, (uid, r))
+
+Here, hmac refers to hmac with md5 digest (the implementation built into python)
+http://docs.python.org/library/hmac.html
+
+IOS resource:
+http://developer.apple.com/library/ios/#documentation/System/Conceptual/ManPages_iPhoneOS/man3/CC_SHA.3cc.html#//apple_ref/doc/man/3cc/CC_SHA

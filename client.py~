@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+from bottle import route, run, request
+import bottle
+import string
+import json
+import hmac
+import hashlib
+
+def make_first_digest(message):
+    ''' return a digest for the message.'''
+    return hmac.new('secret-shared-key', message, hashlib.sha1).hexdigest()
+
+def make_digest(message):
+    ''' return a digest for the message.'''
+    return hmac.new('hashed-password-or-uid', message, hashlib.sha1).hexdigest()
+
+@get('/get_users')
+def get_users():
+    host = 'ec2-50-17-119-54.compute-1.amazonaws.com'
+    method = "get_users"
+    sig = make_digest(params);
+    request = httplib.HTTPConnection(host + ':8080/?method=' + method + '&sig=' + sig)
+    data = request.getresponse().read()
+
+    
+@get('/login')
+def login():
+    return '''<form method="POST">
+<input name="email" type="text" />
+<input name="password" type="password" />
+</form>'''
+
+@post('/login')
+def login_submit():
+    email = request.forms.get('email')
+    password = request.forms.get('password')
+    
