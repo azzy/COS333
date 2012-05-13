@@ -27,6 +27,7 @@ def is_benign(key):
 
 def is_authenticated(token):
     if token is None: return False
+    elif len(token['userid']) < 1: return False
     return token['token'] == gen_token(token['userid'])
     
 def gen_token(userid):
@@ -758,9 +759,16 @@ def update_response():
 def server_static(filename):
     return static_file(filename, root='/var/www/glue/static')
 
+@route('/<filename:re:.*\.html>')
+def send_html(filename):
+    html = open('/var/www/html/' + filename, 'r').read()
+    return html
+#    return filename
+#    return static_file(filename, root='/var/www/glue/html')
+
 @route('/')
 def home():
-    html = open('../html/index.html', 'r').read()
+    html = open('/var/www/html/index.html', 'r').read()
     return html
 
 # ----------------------- ROUTING/AUTH & RUNNING ---------------------------#
@@ -783,5 +791,5 @@ server_names['mysslcherrypy'] = MySSLCherryPy
 # run(host='0.0.0.0', port=443, server='mysslcherrypy')
 
 # non secure connection:
-run(host='0.0.0.0', port=9000)
+#run(host='0.0.0.0', port=9000)
 
