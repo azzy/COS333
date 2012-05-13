@@ -1,0 +1,31 @@
+mysql> describe events;
++-----------+--------------+------+-----+---------+----------------+
+| Field     | Type         | Null | Key | Default | Extra          |
++-----------+--------------+------+-----+---------+----------------+
+| eventid   | int(11)      | NO   | PRI | NULL    | auto_increment |
+| hostid    | int(11)      | YES  |     | NULL    |                |
+| name      | varchar(80)  | YES  |     | NULL    |                |
+| type      | varchar(20)  | YES  |     | NULL    |                |
+| location  | varchar(80)  | YES  |     | NULL    |                |
+| starttime | time         | YES  |     | NULL    |                |
+| endtime   | time         | YES  |     | NULL    |                |
+| descrip   | varchar(150) | YES  |     | NULL    |                |
++-----------+--------------+------+-----+---------+----------------+
+
+mysql> describe friends;
++----------+---------+------+-----+---------+-------+
+| Field    | Type    | Null | Key | Default | Extra |
++----------+---------+------+-----+---------+-------+
+| userid   | int(11) | YES  |     | NULL    |       |
+| friendid | int(11) | YES  |     | NULL    |       |
++----------+---------+------+-----+---------+-------+
+
+mysql> describe invitations;
++----------+------------+------+-----+---------+-------+
+| Field    | Type       | Null | Key | Default | Extra |
++----------+------------+------+-----+---------+-------+
+| eventid  | int(11)    | YES  |     | NULL    |       |
+| guestid  | int(11)    | YES  |     | NULL    |       |
+| notify   | tinyint(1) | YES  |     | NULL    |       |
+| response | tinyint(1) | YES  |     | NULL    |       |
++----------+------------+------+-----+---------+-------+
