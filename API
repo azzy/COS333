@@ -8,6 +8,7 @@ user = { userid:	userid,
          lastname: 	lastname,
 	 email:		email,
 	 phone:		10-digit-phone-number,
+	 # notifications not yet implemented
 	 options:	code,		# 0 = no app, no text notification
 	 				# 1 = no app, yes text notification
 					# 2 = yes app, no text notification
@@ -56,7 +57,7 @@ Quick list of authentication requirements:
 Requires no authentication: 
 	 login
 Requires key:
-	 get_users, get_user, create_user, get_events, find_users, search_users
+	 get_users, get_user, create_user, get_events, find_users
 Requires token:
 	 get_auth, get_self, update_user, get_friends, add_friend, 
 	 add_friends, remove_friend, remove_friends, is_modified,
@@ -64,13 +65,21 @@ Requires token:
 	 get_event, create_event, update_event, remove_event, 
 	 get_guests, add_guest, add_guests, remove_guest, remove_guests,
 	 update_response
+	 search_users
 
 Please let me know if you think that security levels should change
 in any way or that we are missing some functions.
+
+Note that as a general rule, the following are returned in the case
+of errors encountered in any of these:
+"Authentication Failed"
+"Event does not exist"
+"User does not exist"
+"User already exists"
 #-----------------------------------------------
 method login:
        takes: email, password
-       returns: token, userid
+       returns: token, userid or "Authentication Failed"
        access: All
 
 method find_users:
@@ -79,7 +88,7 @@ method find_users:
        access: Us
 
 method search_users:
-       takes: key, q
+       takes: token, q
        returns: dictionary of userids => users that match query
        access: Us
 
@@ -105,12 +114,12 @@ method get_auth:
 
 method create_user:
        takes:	name, lastname, email, password, key
-       returns:	"yes", "User already exists" or perror
+       returns:	"yes", "User already exists" or "Authentication Failed"
        access: Us
 
 method update_user:
-       takes:	name, lastname, email, password, token
-       returns: user
+       takes:	name, lastname, email, password, token, phone
+       returns: "yes", "User already exists", or "Authentication Failed"
        access: this user
 
 method remove_user:
@@ -135,7 +144,7 @@ method remove_friends:
 
 method is_modified:
        takes:	token, which ("invitations" or "events"), friendid (optional)
-       returns:	"yes" or "no" or "failed"
+       returns:	"yes" or "no" or "Authentication Failed"
        access: this user
 
 method get_events:				#NOTE: FOR INTERNAL USE
@@ -146,6 +155,8 @@ method get_events:				#NOTE: FOR INTERNAL USE
 method get_my_invitations:	#note: only method that resets need to update
        takes:	token, hostid (optional filter)
        returns: events (json array of events to which user is invited)
+       		# note: modified to include a field "hostname" for the
+		  	host's full name.
        access: 	this user
 
 method get_my_events:		#note: only method that resets need to update
@@ -165,7 +176,7 @@ method create_event:
 
 method update_event:
        takes(some of):	eventid, name, category, location, starttime, endtime, description, token
-       returns: event
+       returns: "yes" or "no"
        access: host of the event
 
 method remove_event:
