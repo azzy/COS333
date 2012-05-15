@@ -19,6 +19,8 @@ def perror(code):
         return "Event does not exist"
     if code == 2:
         return "User does not exist"
+    if code == 3:
+        return "User already exists"
 
 def is_benign(key):
     global secret_key
@@ -245,7 +247,6 @@ def login():
     if len(email) < 1 or len(password) < 1: return "Authentication Failed"
     # assume that we connected through SSL
     for i, entry in auth.iteritems():
-        print i, entry['password'], entry['email']
         if entry['email'] == email and entry['password'] == password:
             userid = entry['userid']
             return encode({'userid': userid, 'token':gen_token(str(userid))})
@@ -287,17 +288,27 @@ def find_users():
 
 @route('/search_users')
 def search_users():
-    key = request.GET['key']
+    token = decode(request.GET['token'])
     name = request.GET['q'].split()
     firstname = name[0]
     try: lastname = name[1]
     except: lastname = ''
     q = request.GET['q']
-    if is_benign(key):
+    if is_authenticated(token):
         ret = {}
         users = _load('users.json')
+        thisid = token['userid']
+        this = users[thisid]
+        print thisid, this
         for userid, user in users.iteritems():
+            print userid, user
             if isinstance(user, int): continue
+            if userid in this['friends']: 
+                print "can't add your own friends"
+                continue
+            if userid == thisid: 
+                print "can't add yourself"
+                continue
             if _starts_with(user['name'], firstname)\
                     and _starts_with(user['lastname'], lastname)\
                     or _like(user['email'], q)\
@@ -361,7 +372,7 @@ def create_user():
         auth = _load('auth.json')
         # check if a user exists with this email
         if _user_exists(email, auth):
-            return "User already exists"
+            return perror(3)
         # add user if it doesn't already exist.
         user = _update_user(None, name, lastname, email, phone)
         _update_auth(user['userid'], email, password) #function handles the sha
@@ -385,10 +396,11 @@ def update_user():
         except: return perror(2)
         try: entry = auth[userid]
         except: return perror(2)
-        if _user_exists(email, auth): return "User already exists"
+        if email != user['email'] and _user_exists(email, auth): 
+            return perror(3)
         _update_auth(userid, email, password) # rewrite this function
         user = _update_user(userid, name, lastname, email, phone)
-        return user
+        return "yes"
     else: return perror(0)
 
 @route('/remove_user')
@@ -476,7 +488,7 @@ def is_modified():
         modified = friendid in users[userid]['modified'][which]
         if modified is True: return "yes"
         else: return 'no'
-    else: return 'failed'
+    else: return perror(0)
 
 @route('/rewrite_database')
 def rewrite_database():
@@ -521,6 +533,8 @@ def get_my_invitations():
             print hostid == event['hostid']
             if hostid is 'all' or hostid == event['hostid']:
                 ret[eventid] = event
+                host = users[event['hostid']]
+                ret[eventid]['hostname'] = host['name'] + ' ' + host['lastname']
         
         # mark the data as not modified
         user = _mark_modified(user, 'invitations', hostid, 'no')
@@ -646,7 +660,7 @@ def update_event():
             events[eventid] = event
         _save(events, 'events.json')
         _save(users, 'users.json')
-        return json.dumps(event)
+        return "yes"
     else: return perror(0)
 
 def _remove_event(eventid):

@@ -1,6 +1,9 @@
 <html>
   <head>
     <title>Glue Timeline</title>
+    <style type="text/css">
+      dt { margin-top: 1em; }
+    </style>
     </head>
   <body>
     <h1>Glue: Timeline</h1>
@@ -8,13 +11,13 @@
     <dt>March 16, 2012</dt>
     <dd>First official meeting. Pietro and Alcie met in Frist to discuss and draft the first version of the project description document.</dd>
     <dt>March 21, 2012</dt>
-    <dd>Set up repository on github (github.com/azzy/COS333). Set up ec2 instance on aws.amazon.com running Linux. </dd>
+    <dd>Set up repository on github (github.com/azzy/COS333). Set up ec2 instance on aws.amazon.com running RedHat. </dd>
     <dt>March 22, 2012</dt>
     <dd>First iteration of model: MySQL tables that look like <a href="models1.html">this</a></dd>
     <dt>April 2, 2012</dt>
     <dd>Pietro wrote Python functions to update MySQL database. We ended up not using these functions after we switched to bottle.py and flat files. Today was also the first meeting with our TA, Stephen Beard. We discussed our product idea, our development environment and our new MySQL database.</dd>
     <dt>April 9, 2012</dt>
-    <dd>Alice wrote first "fully-functional" backend API in python using the bottle microframework, opting to save json arrays to flat files instead of using MySQL. Decided to split front-end back-end so we don't step on eachothers' toes. Pietro really wants to learn how to make apps, so he takes front-end. Alice wants to learn how to do back-end so she takes that. <a href="API1.html">API</a></dd>
+    <dd>Alice wrote first "fully-functional" backend API in python using the bottle microframework, opting to save json arrays to flat files instead of using MySQL. Decided to split front-end back-end so we don't step on eachothers' toes. Pietro really wants to learn how to make apps, so he takes front-end. Alice wants to learn how to handle a back-end so she takes that. First iteration of the <a href="API1.html">API</a>.</dd>
     <dt>April 10th</dt>
     <dd>Pietro begins reading on Objective-C to begin development on the iPhone app. The resources that he looks at are Stanford's iOS Development class,the iOS class on lynda.princeton.edu and the book "Beginning iOS5 Development" by Mark, Nutting and Lamarche. Pietro sets up a simple tabbed application on XCode to show Stephen the next day. The five tabs are "My Events", "Stream", "Create Event", "Friends" and "Settings". He downloads free icons from glyphish.com to use as the tab icons.</dd> 
     <dt>April 11th</dt>
@@ -36,17 +39,19 @@
     <dt>May 4, 2012</dt>
     <dd>Alice added the API function get_self to facilitate the process of logging in. She also  added "phone" to user object. Alice also added the API function is_modified to let the app update its information only when something has changed. Added get_my_events and get_my_invitations. Added a check if email already exists in system in create_user. Added a method called find_users that returns a list of users that match the query (takes separate parameters for name, phone number, email, list of ids of friends they might be friends with)</dd>
 <dt>May 5, 2012</dt>
-<dd>Pietro re-implemented the app using the more efficient API methods such as get_my_events and get_my_invitations, which made the app much faster. Alice rgistered the domain name ZTBINMIYOG.US and successfully attached the SSL certificate. Still need to figure out Apache adapter for HTTPS connections. Alice also got a Twilio account in case we have enough time to implement SMS integration. She is still having problems with API authentication.</dd>
+<dd>Pietro re-implemented the app using the more efficient API methods such as get_my_events and get_my_invitations, which made the app much faster. Alice rgistered the domain name ZTBINMIYOG.US and successfully attached the SSL certificate. Still need to figure out Apache adapter for HTTPS connections. Alice also got a Twilio account in case we have enough time to implement SMS integration. Having difficulty getting Twilio working because they keep telling her she's not authenticated.</dt>
 <dt>May 7, 2012</dt>
 <dd>Alice changed get_friends, get_guests, and find_users to consistently return dictionaries of id to user mappings. Changed remove_event to work (fixed removal of eventids in user events list)</dd>
 <dt>May 8, 2012</dt>
 <dd>Standardized our error-checking on the server. Rewrote database so every id is a string. Deleted deprecated functions and added search_users, which takes a single parameter q that can be a phone number, email, anything. Current versions of <a href="API2.html">API</a>, <a href="eventsjson.html">events</a>, <a href="usersjson.html">users</a>, and <a href="authjson.html">authentication</a> documents.</dd>
 <dt>May 9, 2012</dt>
-<dd>Pietro implemented the functionality to search for and add friends on the app. Alice created an icon, splashpage and login screen image for the demo.</dd>
+<dd>Pietro implemented the functionality to search for and add friends on the app. Alice created an icon, splashpage and login screen image for the demo. Alice writes presentation.</dd>
 <dt>May 10, 2012</dt>
-<dd>Demo was today at 10:30am in CS 105. Alice Registered the domain name glue-app.info to user as our official product page..</dd>
+<dd>Demo was today at 10:30am in CS 105. Alice Registered the domain name glue-app.info to user as our official product page.</dd>
 <dt>May 13, 2012</dt>
 <dd>Pietro distributed the current version of Glue to two beta testers (Mike Wang, Emily Jacobson). To do this, he first got an "Ad Hoc partitioning profile" from Apple's Partitioning Portal. He also got the beta testers' iPhone UDIDs. With these unique identifiers, he was able to make an XCode build that the testers could run on their phones.</dd>
 <dt>May 14, 2012</dt>
 <dd>Final stage of tweaking and debugging the iOS app. Pietro implemented these fixes: (1)Under the Create Event tab, "Start time" and "End time" can only be time stamps now. "Category" is also restricted to a set of 4-5 predefined categories. This is accomplished by using UIDatePickers and UIPickers instead of the traditional keyboard that comes up when you touch a text field. (2) Events in "My Events" and "Stream" are now listed in strict chronological order. (3) Validate all user input on the app.</dd>
+<dd>Alice installed SSL certificate for www.ztbinmiyog.us and got the HTTPS connection working so we now send encrypted packets. She started on text notification (it lives!) but is holding off on integrating it into the app until other Dean's Date stuff is done like this report (uhoh!). Changed search_users so it takes a token and doesn't return this user or this user's friends. Changed update_user so you can't update to somebody else (duh?).</dd>
+</dl>
 </html>

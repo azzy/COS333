@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>COS 333 Project Website - Glue</title>
+    <title>Glue: Documentation</title>
     </head>
   
   <body>
@@ -19,7 +19,7 @@
 <li><a href="internals.html">Internals</a></li>
 <li><a href="report.html">Report</a></li>
 <li><a href="timeline.html">Timeline</a></li>
-<li><a href="Presentation.ppt">Final Presentation Slides</a></li>
+<li><a href="Presentation.pdf">Final Presentation Slides</a></li>
 </ul>
 </body>
 </html>

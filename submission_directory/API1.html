@@ -1,32 +1,38 @@
+<html>
+<head>
+<title>API</title>
+</head>
+<body>
+<pre>
 user = { userid:	userid,
-       	  name:			name,
-         lastname: 		lastname,
-	  email:			email,
-	   password:			password,
-	    friends:			[ friend1id,
-	     				    friend2id ]
+       	 name:		name,
+         lastname: 	lastname,
+	 email:		email,
+	 password:	password,
+	 friends:	[ friend1id,
+	     		  friend2id ]
 
          invitations:   [ eventid,
-	  		    eventid,
-					  eventid,
-							  eventid ]
+	  		  eventid,
+			  eventid,
+			  eventid ]
 
-							   events:	[ eventid,
-							    		    eventid,
-											  eventid ]
+	 events:	[ eventid,
+	    		  eventid,
+			  eventid ]
        }
 
 
 event = { eventid:	eventid,
           hostid:	hostid,
-	    name:		name,
-	      category:		category,
-	        location:	location,
-		  starttime:	starttime,
-		    endtime:	endtime,
-		      description:	description,
-		        guests:		{ guestid: response,
-			  		    guestid: response }
+	  name:		name,
+	  category:	category,
+	  location:	location,
+	  starttime:	starttime,
+	  endtime:	endtime,
+	  description:	description,
+	  guests:	{ guestid: response,
+			  guestid: response }
         }
 
 
@@ -91,3 +97,6 @@ method remove_guest:
 method update_response:
        takes:   eventid, guestid, response
        returns: true or false
+</pre>
+</body>
+</html>
