@@ -6,27 +6,47 @@
     <h1>Glue: Timeline</h1>
     <dl>
     <dt>March 16, 2012</dt>
-    <dd>First official meeting. We met in Frist to discuss and draft the first version of the project description document.</dd>
+    <dd>First official meeting. Pietro and Alcie met in Frist to discuss and draft the first version of the project description document.</dd>
     <dt>March 21, 2012</dt>
-    <dd>Set up repository on github. Set up ec2 instance.</dd>
+    <dd>Set up repository on github (github.com/azzy/COS333). Set up ec2 instance on aws.amazon.com running Linux. </dd>
     <dt>March 22, 2012</dt>
     <dd>First iteration of model: MySQL tables that look like <a href="models1.html">this</a></dd>
     <dt>April 2, 2012</dt>
-    <dd>Pietro wrote Python functions to update MySQL database.</dd>
+    <dd>Pietro wrote Python functions to update MySQL database. We ended up not using these functions after we switched to bottle.py and flat files. Today was also the first meeting with our TA, Stephen Beard. We discussed our product idea, our development environment and our new MySQL database.</dd>
     <dt>April 9, 2012</dt>
-    <dd>Alice wrote first "fully-functional" backend in python with bottle, opting to save json arrays to flat files instead of using MySQL. Decided to split front-end back-end so we don't step on eachothers' toes. <a href="API1.html">API</a></dd>
+    <dd>Alice wrote first "fully-functional" backend API in python using the bottle microframework, opting to save json arrays to flat files instead of using MySQL. Decided to split front-end back-end so we don't step on eachothers' toes. Pietro really wants to learn how to make apps, so he takes front-end. Alice wants to learn how to do back-end so she takes that. <a href="API1.html">API</a></dd>
+    <dt>April 10th</dt>
+    <dd>Pietro begins reading on Objective-C to begin development on the iPhone app. The resources that he looks at are Stanford's iOS Development class,the iOS class on lynda.princeton.edu and the book "Beginning iOS5 Development" by Mark, Nutting and Lamarche. Pietro sets up a simple tabbed application on XCode to show Stephen the next day. The five tabs are "My Events", "Stream", "Create Event", "Friends" and "Settings". He downloads free icons from glyphish.com to use as the tab icons.</dd> 
+    <dt>April 11th</dt>
+    <dd>Second meeting with Stephen Beard. We demo the simple tabbed application and describe what is going to go on each tab. We also discuss making Alice's API more secure. At this moment, anyone could request any data from the server with a URL request and the server would return it. We agree to make the API more secure for next week (Alice) and to flesh out the UI of each tab in the iPhone app (Pietro).</dd>
+    <dt>April 18, 2012</dt>
+    <dd> Third meeting with Stephen Beard. The app is now reading static data for "My Events", "Stream" and "Friends" from property lists stored in the app's Supporting Documents. We promise Stephen that next week we would be populating the app's tableviews dynamically from the server.</dd>
+    <dt>April 20, 2012</dt>
+    <dd>Pietro starts parsing JSON objects from the server using the built-in NSJSONSerialization provided by Apple.</dd>
+    <dt>April 23, 2012</dt>
+    <dd>To be able use user-specific information (name, e-mail, events list) across different views on the iOS app, Pietro starts using a Singleton class to model that user that is currently logged in. Only one SingletonUser exists per login session. Most functions that call the server are stored within the SingletonUser class. </dd>
     <dt>April 25, 2012</dt>
-    <dd>Switched to using an Elastic IP address so we can attach domain names. Adapted back-end to run on Apache so that it runs persistently. Integrated authentication into back-end code and API (added auth.json to store email/userid/hashed-password mappings, required signatures and tokens from client). Wrote client.py as a simple test client that presents credentials and sometimes is not authorized to perform functions.  Struggled and failed to set up SSL connections. Sort of got SSL working with a CherryPy adapter, but only for self-signed certificates and only between two Python programs.</dd>
+    <dd>Fourth meeting with Stephen Beard. We switched to using an Amazon Elastic IP address so we can attach domain names to our EC2 instance. Alice adapted back-end to run on Apache so that it runs persistently. She also integrated authentication into back-end code and API (added auth.json to store email/userid/hashed-password mappings, required signatures and tokens from client). Alice wrote client.py as a simple test client that presents credentials and sometimes is not authorized to perform functions.  Struggled and failed to set up SSL connections. Sort of got SSL working with a CherryPy adapter, but only for self-signed certificates and only between two Python programs.</dd>
+    <dt>April 26, 2012</dt>
+    <dd>Pietro re-implemented the sections of the app that use parts of the API that were changed to make it more secure.</dd>
+    <dt>May 2, 2012</dt>
+    <dd>Fifth and final meeting with Stephen Beard. We show Stephen that the basic functionalities of creating an event, inviting friends and responding to an invitation works. A lot of the scrolling at this point is very slow because we are making a lot of server calls per view (someitmes one call per tabel row). Pietro adds Login and Signup functionality to the app after the meeting.</dd>
+    <dt>May3, 2012</dt>
+    <dd>Apple approves Pietro's developer program application. The app can now be tested on iOS devices and be distributed to up to 100 beta testers under Apple's "ad hoc distribution" system"</dd>
     <dt>May 4, 2012</dt>
-    <dd>Added function get_self, added phone to user object, added is_modified function. Added get_my_events and get_my_invitations. Added a check if email already exists in system in create_user. Added a method called find_users that returns a list of users that match the query (takes separate parameters for name, phone number, email, list of ids of friends they might be friends with)</dd>
+    <dd>Alice added the API function get_self to facilitate the process of logging in. She also  added "phone" to user object. Alice also added the API function is_modified to let the app update its information only when something has changed. Added get_my_events and get_my_invitations. Added a check if email already exists in system in create_user. Added a method called find_users that returns a list of users that match the query (takes separate parameters for name, phone number, email, list of ids of friends they might be friends with)</dd>
 <dt>May 5, 2012</dt>
-<dd>Registered for us the domain name ZTBINMIYOG.US and successfully attached the SSL certificate. Still need to figure out Apache adapter for HTTPS connections. Got a Twilio account for us, having problems with authentication with their API.</dd>
+<dd>Pietro re-implemented the app using the more efficient API methods such as get_my_events and get_my_invitations, which made the app much faster. Alice rgistered the domain name ZTBINMIYOG.US and successfully attached the SSL certificate. Still need to figure out Apache adapter for HTTPS connections. Alice also got a Twilio account in case we have enough time to implement SMS integration. She is still having problems with API authentication.</dd>
 <dt>May 7, 2012</dt>
-<dd>Changed get_friends, get_guests, and find_users to consistently return dictionaries of id to user mappings. Changed remove_event to work (fixed removal of eventids in user events list)</dd>
+<dd>Alice changed get_friends, get_guests, and find_users to consistently return dictionaries of id to user mappings. Changed remove_event to work (fixed removal of eventids in user events list)</dd>
 <dt>May 8, 2012</dt>
-<dd>Standardized our error-checking. Rewrote database so every id is a string. Deleted deprecated functions and added search_users, which takes a single parameter q that can be a phone number, email, anything. Current versions of <a href="API2.html">API</a>, <a href="eventsjson.html">events</a>, <a href="usersjson.html">users</a>, and <a href="authjson.html">authentication</a> documents.</dd>
+<dd>Standardized our error-checking on the server. Rewrote database so every id is a string. Deleted deprecated functions and added search_users, which takes a single parameter q that can be a phone number, email, anything. Current versions of <a href="API2.html">API</a>, <a href="eventsjson.html">events</a>, <a href="usersjson.html">users</a>, and <a href="authjson.html">authentication</a> documents.</dd>
 <dt>May 9, 2012</dt>
-<dd>Made us a logo, splashpage, etc.</dd>
+<dd>Pietro implemented the functionality to search for and add friends on the app. Alice created an icon, splashpage and login screen image for the demo.</dd>
 <dt>May 10, 2012</dt>
-<dd>Registered for us the domain name glue-app.info as our product page and modified the server so it would serve static files and html so I can get started making the product page.</dd>
+<dd>Demo was today at 10:30am in CS 105. Alice Registered the domain name glue-app.info to user as our official product page..</dd>
+<dt>May 13, 2012</dt>
+<dd>Pietro distributed the current version of Glue to two beta testers (Mike Wang, Emily Jacobson). To do this, he first got an "Ad Hoc partitioning profile" from Apple's Partitioning Portal. He also got the beta testers' iPhone UDIDs. With these unique identifiers, he was able to make an XCode build that the testers could run on their phones.</dd>
+<dt>May 14, 2012</dt>
+<dd>Final stage of tweaking and debugging the iOS app. Pietro implemented these fixes: (1)Under the Create Event tab, "Start time" and "End time" can only be time stamps now. "Category" is also restricted to a set of 4-5 predefined categories. This is accomplished by using UIDatePickers and UIPickers instead of the traditional keyboard that comes up when you touch a text field. (2) Events in "My Events" and "Stream" are now listed in strict chronological order. (3) Validate all user input on the app.</dd>
 </html>

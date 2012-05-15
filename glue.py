@@ -207,6 +207,14 @@ def _is_invited(userid, eventid):
     user = users[userid]
     return user['invitations'].has_key(eventid)
 
+def _user_exists(email, auth):
+    if email is None: return False
+    for userid, entry in auth.iteritems():
+        if entry['email'] == email:
+            return True
+    return False
+
+
 # --------------------------------- REGEX HELPERS----------------------------#
 
 def _like(a, b):
@@ -234,7 +242,7 @@ def login():
     auth = _load('auth.json')
     email = request.GET['email']
     password = make_digest(request.GET['password'])
-    print password
+    if len(email) < 1 or len(password) < 1: return "Authentication Failed"
     # assume that we connected through SSL
     for i, entry in auth.iteritems():
         print i, entry['password'], entry['email']
@@ -352,15 +360,15 @@ def create_user():
     if is_benign(key):
         auth = _load('auth.json')
         # check if a user exists with this email
-        for userid, entry in auth.iteritems():
-            if entry['email'] == email:
-                return "User already exists"
+        if _user_exists(email, auth):
+            return "User already exists"
         # add user if it doesn't already exist.
         user = _update_user(None, name, lastname, email, phone)
         _update_auth(user['userid'], email, password) #function handles the sha
         return "yes"
     else: return perror(0)
     
+
 @route('/update_user')
 def update_user():
     name = request.GET.get('name', None)
@@ -377,6 +385,7 @@ def update_user():
         except: return perror(2)
         try: entry = auth[userid]
         except: return perror(2)
+        if _user_exists(email, auth): return "User already exists"
         _update_auth(userid, email, password) # rewrite this function
         user = _update_user(userid, name, lastname, email, phone)
         return user

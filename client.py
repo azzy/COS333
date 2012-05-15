@@ -92,7 +92,7 @@ def app():
     
 #    sig = encode({ 'method': method, 'sig': make_digest(method) })
     key = secret_key
-    host = 'http://localhost'
+    host = 'http://localhost:9000'
     url = host + '/' + method
     if method in req_tok:
         url += '?token=' + token
