@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>Glue: Report</title>
+</head>
+<body>
+<h2>Planning</h2>
+<p>We were hampered in our planning by our own uncertainty of what making this app would actually entail. Not until our second meeting with Stephen did we think about the fact that our API had to disallow tampering with the database by any person who could decipher our URLs, and not until Pietro had finished many tutorials on Objective-C and iOS programming did we begin to grasp what a monster the front-end would be. We walked into this project naive, ambitious, and cocky, fought through some dark times of ignorance, and emerged humbled but victorious.</p>
+<p>We had clear plans about what the model would look like, a specification for what a basic API would need to do, and a sense of what we wanted to accomplish. Not until April 9 did we agree on the flow of our application and it's general layout. We also didn't do a very good job of planning our time out; we essentially decided on goals for each week during or after our meetings with Stephen. We didn't initially know exactly what we'd use for the back-end, either.</p>
+<p>That being said, when we set goals for ourselves we nearly always rose to achieve them, such that we managed to be mostly on schedule for where we wanted to be, despite the time suck of having to learn entire a new language or design security and authentication measures.</p>
+<h2>Strategies</h2>
+<p>While we didn't do a great job of planning, we ended up having a relatively easy time working with each other because we were careful to set up clear interfaces. Since we were two people and were able to divide up the app neatly into front-end and back-end, we were able to work mostly independently of one another despite the front-end's dependence on calls to the server and the back-end's dependence on the front-end to uncover what else needed to be implemented. Alice maintained an API document that reflected any changes that she made, and Pietro emailed Alice with any methods he still needed. We had a couple of rough patches fitting our pieces together (e.g. when the server would break because of some changes Alice was trying to implement and this rendered Pietro unable to continue working) but were able to find ways to make working together less hectic (like assigning one port for the "supposedly working" interface to the back-end and another for development).</p>
+<p>While working in such a tightly coupled system made working together more difficult in some ways, it actually proved to be a very good thing for us in others. Since Pietro's iPhone app depended on the back-end, he was able to report any back-end bugs to Alice before they had a chance to embarrass us to the public. This allowed Alice to focus entirely on how to perform specific functions without thinking much about the "big picture" while Pietro was then able to focus on how users would interact with the application without needing to worry about the specifics of finding the information he needed.</p>
+<h2>Milestones</h2>
+<p>We set some really ambitious milestones mainly because neither of us really had any experience making an iPhone app before but we'd heard it was pretty easy so we assumed we'd get it done in no time. We initially intended to have the app done several weeks before the deadline, distribute to beta testers, and iteratively improve, but this proved infeasible given heavy workloads for other classes and independent work. We like to see the milestones we set for ourselves not as deadlines, however, but as suggestive goals. While we did not stick to them, we did feel compelled to try and succeeded in accomplishing quite a lot in the process. We may not have gotten our app out to beta testers weeks in advance, but we are only a few weeks behind our target, which is really not so bad given that our target assumed that many things, like security and learning new material, were trivial, when they proved to be anything but.</p>
+<h2>Learning the Material</h2>
+<p>We both walked into this experience with very little knowledge in the areas that we were attacking and feel like we walked out with a lot more confidence about our programming chops and our abilities to learn. Pietro undertook the impressive feat of learning enough about Objective-C and iOS programming to create an app alone. Alice was already familiar with Python through the earlier assignments and familiar with bottle.py through a hackathon, but had never actually written back-end code for a web app. She learned a lot about how to develop and secure an API, administer a server, and write larger programs in Python in a manageable and extensible manner. We both learned a lot about working with other programmers on a project like this as well, and we definitely agree with Professor Kernighan about the importance of interfaces.</p>
+<p>What we really learned from this project was a better sense of how to approach an application, how to work as a pair effectively (i.e. clear interfaces, clearly specifying what we need, testing separately, and testing before sharing), and how to break down an idea into clearly delineated ineractions between objects or with a server.</p>
+<h2>Next Steps</h2>
+<p>We definitely feel like there's more that we'd like to do on this project, and we plan to continue working on it over the summer to hopefully have an app that we'd both be proud of releasing on the App Store. We have begun beta testing but some of the features we'd still like to implement include:</p>
+<ol>
+  <li>Editing event information.</li>
+  <li>Optional text notifications for updates on events.</li>
+  <li>Including non-users by allowing users to specify external friends with phone nubmers, who receive text messages about events instead of using the app.</li>
+  <li>Verifying email addresses before creating users.</li>
+  <li>Filtering the events by category, location, or time ranges.</li>
+  <li>Viewing events from the friends list.</li>
+  <li>Improving the interface for searching for new friends so that you can check or uncheck to add and remove friends.</li>
+  <li>Improving the speed of our app.</li>
+  <li>Caching in memory instead of reading from disk all the time.</li>
+  <li>Speaking to the front-end in integer codes instead of strings for returns like "yes", "no" and "Authentication Failed".</li>
+</ol>
+<p>In addition, the code is not quite as clean as we'd like for it to be. We're pretty pleased with the style in some parts, but new additions became somewhat more hacky as we neared the deadline. As we continue to work on this project, we hope to make the code simpler and more efficient.</p>
+<h2>If We Could Do It All Over Again</h2>
+<p>We would have made an effort to meet up more regularly and with clearer reports to each other so that we could have worked together more closely. As afore-mentioned, the close dependency of our work had some advantages, but it also made communication extremely key, and we could probably have done a better job of it. We would also have tried harder to nab a third person early on, not just because we feel that we could have accomplished more with more manpower but because we could then have learned more from each other.</p>
+<p>Really though, if we did this all again we would probably work twice as fast and get twice as much done just because we know so much more now about how to make this kind of app.</p>
+<h2>Acknowledgements</h2>
+<p>We have so much of stackoverflow to thank for this project. Also a huge thank you to Joe Perla whose classes and advice guided the design of the back-end and our learning of iOS/Objective-C, and to Stephen Beard who dealt with us weekly this semester.</p>
+<h2>Final Thoughts</h2>
+<p>Although we both had to learn a lot to complete this project, we both realized that the hardest part was working together, especially since neither of us had very much prior real-world programming experience (for instance neither of us has ever done a technical internship), we both learned a lot about going from an idea to a working application. Regardless of the features we weren't able to implement in time for submission, we'll take out of this an understanding of how to work with another person, ask questions, and figure things out that will surely apply in any future real-world programming.</p>
+</body>
+</html>

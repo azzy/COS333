@@ -1,0 +1,102 @@
+<html>
+<head>
+<title>Glue App</title>
+<style type="text/css">
+body {
+font: 11pt sans-serif;
+line-height: 1.6em;
+background-color: #eee; 
+}
+#screenshot { 
+position: absolute;
+right: 0px;
+width: 400px;
+z-index: -2;
+}
+#header {
+padding: 50px;
+position: absolute;
+top: 30%;
+left: 0;
+z-index: -3;
+background-color: #fff;
+width: 600px;
+}
+dl {
+padding: 50px;
+position: absolute;
+top: 95%;
+z-index: -4;
+background-color: #fff;
+width: 600px;
+margin: 0;
+}
+dt { font-size: 20pt; }
+dd { 
+height: 600px;
+margin-left: 0;
+margin-top: 1em;
+}
+dd:last-of-type {
+height: 410px;
+}
+#phone { 
+position: fixed;
+top: 50px;
+left: 60%;
+z-index: -1;
+}
+#screenshot-1,
+#screenshot-2,
+#screenshot-3,
+#screenshot-4,
+#screenshot-5 {
+position: absolute;
+left: 118px;
+width: 228px;
+}
+#screenshot-1 {
+top: 130px;
+}
+#screenshot-2 {
+top: 730px;
+}
+#screenshot-3 {
+top: 1330px;
+}
+#screenshot-4 {
+top: 1930px;
+}
+#screenshot-5 { 
+top: 2530px;
+}
+a { color: #1CAEE8; text-decoration: none; }
+a:hover,
+a:focus { border-bottom: 1px dotted #1CAEE8; }
+</style>
+</head>
+<body>
+<div id="screenshot">
+<img id="phone" src="static/phone.png" />
+<img id="screenshot-1" src="static/screenshot-1.png" />
+<img id="screenshot-2" src="static/screenshot-2.png" />
+<img id="screenshot-3" src="static/screenshot-3.png" />
+<img id="screenshot-4" src="static/screenshot-4.png" />
+<img id="screenshot-5" src="static/screenshot-5.png" />
+</div>
+<div id="header">
+  <h1>Glue: An App to Bring Us Together</h1>
+  <p>Glue is in your pocket, on the go, connection you with your close friends, acquaintances, and old friends so you can meet up with them any time and anywhere.</p>
+</div>
+<dl>
+  <dt id="2">Join your friends</dt>
+  <dd>See where and when your friends are doing things they'd like you to join in doing. You've always been invited, and now you know.</dd>
+  <dt id="3">Make any moment an event</dt>
+  <dd>Tell your friends where and when you're doing anything you'd like them to join you in doing.</dd>
+  <dt id="4">No-pressure invitations</dt>
+  <dd>Invite anyone you know with just a touch. Your events show up in their stream when they want to find events to join, but they won't receive notifications about them unless they want to, so you're never intruding.</dd>
+  <dt id="5"></dt>
+  <dd><a href="mailto:glueapp.mailer@gmail.com">Email us</a> now to get started.</dd>
+</dl>
+</body>
+</html>
