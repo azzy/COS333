@@ -1,76 +1,83 @@
-auth = { userid:userid,
-email:email,
-password:password#sha224
+<html>
+<head>
+<title>API</title>
+</head>
+<body>
+<pre>
+auth = { userid:	userid,
+         email:		email,
+	 password:	password	#sha224
 }
 
-user = { userid:userid,
-name:name,
-lastname: lastname,
-email:email,
-phone:10-digit-phone-number,
-options:code,# 0 = no app, no text notification
-# 1 = no app, yes text notification
-# 2 = yes app, no text notification
-# 3 = yes app, yes text notification
-friends:[ friend1id,
-  friend2id ],
+user = { userid:	userid,
+       	 name:		name,
+         lastname: 	lastname,
+	 email:		email,
+	 phone:		10-digit-phone-number,
+	 # notifications not yet implemented
+	 options:	code,		# 0 = no app, no text notification
+	 				# 1 = no app, yes text notification
+					# 2 = yes app, no text notification
+					# 3 = yes app, yes text notification
+	 friends:	[ friend1id,
+	 		  friend2id ],
          invitations:   { eventid: response,
-  eventid: response },
-events: [ eventid,
-  eventid,
-  eventid ],
-modified: { invitations:  ['all',# for stream page
- friendid,      # id of person who mod 
- friendid],
-events:['all',# for my events page
-  friendid, 
-  friendid] }
-  # if invitations or events has changed
-  # since the last time that this info
-  # was retrieved. if neither yes or no, then assume
-  # that there is nothing of interest (i.e. no)
+	 		  eventid: response },
+	 events: 	[ eventid,
+	 		  eventid,
+			  eventid ],
+	 modified: 	{ invitations:  ['all',		# for stream page
+	 		  		 friendid,      # id of person who mod 
+	 		  		 friendid],
+			  events:	['all',		# for my events page
+					  friendid, 
+			  		  friendid] }
+			  # if invitations or events has changed
+       	 		  # since the last time that this info
+			  # was retrieved. if neither yes or no, then assume
+			  # that there is nothing of interest (i.e. no)
        }
 
 
-event = { eventid:    eventid,
-hostid:hostid,
-name:name,
-category:category,
-location:location,
-starttime:starttime,
-endtime:endtime,
-description:description,
-guests:{ guestid: response,
-  guestid: response }
+event = { eventid:    	eventid,
+          hostid:	hostid,
+	  name:		name,
+	  category:	category,
+	  location:	location,
+	  starttime:	starttime,
+	  endtime:	endtime,
+	  description:	description,
+	  guests:	{ guestid: response,
+	  		  guestid: response }
         }
-
-token = 'userid+' + userid + '|token+' + gen_token(userid)
-key = 'okXRDgXqnDfyYK11nARRIdUy5xmuGsJi00DQuyzaGYY'
-
-Example urls:
-http://23.23.223.158/login?email=azheng@princeton.edu&password=password
-http://23.23.223.158/get_users?sig=sig+13a761e017797edd5260f16bff64611a0152a97693115de645e47584|method+get_users
-http://23.23.223.158/get_user?token=token+cb2de2653adb3e1bab66324523f7fbcbbc950aa9|userid+1
 
 Quick list of authentication requirements:
 Requires no authentication: 
- login
+	 login
 Requires key:
- get_users, get_user, create_user, get_events
+	 get_users, get_user, create_user, get_events, find_users
 Requires token:
- get_auth, get_self, update_user, get_friends, add_friend, 
- add_friends, remove_friend, remove_friends, is_modified,
- get_my_invitations, get_my_events, 
- get_event, create_event, update_event, remove_event, 
- get_guests, add_guest, add_guests, remove_guest, remove_guests,
- update_response
+	 get_auth, get_self, update_user, get_friends, add_friend, 
+	 add_friends, remove_friend, remove_friends, is_modified,
+	 get_my_invitations, get_my_events, 
+	 get_event, create_event, update_event, remove_event, 
+	 get_guests, add_guest, add_guests, remove_guest, remove_guests,
+	 update_response
+	 search_users
 
 Please let me know if you think that security levels should change
 in any way or that we are missing some functions.
+
+Note that as a general rule, the following are returned in the case
+of errors encountered in any of these:
+"Authentication Failed"
+"Event does not exist"
+"User does not exist"
+"User already exists"
 #-----------------------------------------------
 method login:
        takes: email, password
-       returns: token, userid
+       returns: token, userid or "Authentication Failed"
        access: All
 
 method find_users:
@@ -79,7 +86,7 @@ method find_users:
        access: Us
 
 method search_users:
-       takes: key, q
+       takes: token, q
        returns: dictionary of userids => users that match query
        access: Us
 
@@ -89,32 +96,32 @@ method get_users:
        access: Us # anyone with the app :(
 
 method get_user:
-takes:userid, key
+       takes:	userid, key
        returns: user
        access:  Us
 
 method get_self:
-takes:token
+       takes:	token
        returns: user
        access:  this user
 
 method get_auth:
-takes:token
+       takes:	token
        returns: auth
-access: Us
+       access: 	Us
 
 method create_user:
-takes:name, lastname, email, password, key
-returns:"yes", "User already exists" or perror
+       takes:	name, lastname, email, password, key
+       returns:	"yes", "User already exists" or "Authentication Failed"
        access: Us
 
 method update_user:
-takes:name, lastname, email, password, token
-       returns: user
+       takes:	name, lastname, email, password, token, phone
+       returns: "yes", "User already exists", or "Authentication Failed"
        access: this user
 
 method remove_user:
-takes:token
+       takes:	token
        returns: "yes" or "no"
        access: this user
 
@@ -124,37 +131,39 @@ method get_friends:
        access: this user
 
 method add_friends:
-takes:token, friendids (delimited by ",")
+       takes:	token, friendids (delimited by ",")
        returns: "yes" or "no"
        access: this user
 
 method remove_friends:
-takes:token, friendids (delimited by ",")
+       takes:	token, friendids (delimited by ",")
        returns: "yes" or "no"
        access: this user
 
 method is_modified:
-takes:token, which ("invitations" or "events"), friendid (optional)
-returns:"yes" or "no" or "failed"
+       takes:	token, which ("invitations" or "events"), friendid (optional)
+       returns:	"yes" or "no" or "Authentication Failed"
        access: this user
 
-method get_events:#NOTE: FOR INTERNAL USE
+method get_events:				#NOTE: FOR INTERNAL USE
        takes:   key
        returns: events
        access: Us
 
-method get_my_invitations:#note: only method that resets need to update
-takes:token, hostid (optional filter)
+method get_my_invitations:	#note: only method that resets need to update
+       takes:	token, hostid (optional filter)
        returns: events (json array of events to which user is invited)
-access: this user
+       		# note: modified to include a field "hostname" for the
+		  	host's full name.
+       access: 	this user
 
-method get_my_events:#note: only method that resets need to update
-takes:token, guestid (optional filter)
+method get_my_events:		#note: only method that resets need to update
+       takes:	token, guestid (optional filter)
        returns: events (json array of events this user is hosting)
-access: this user
+       access: 	this user
 
 method get_event:
-takes:eventid, token
+       takes:	eventid, token
        returns: event
        access:  anyone invited or hosting this event
 
@@ -164,27 +173,27 @@ method create_event:
        access:  a user
 
 method update_event:
-takes(some of):eventid, name, category, location, starttime, endtime, description, token
-       returns: event
+       takes(some of):	eventid, name, category, location, starttime, endtime, description, token
+       returns: "yes" or "no"
        access: host of the event
 
 method remove_event:
-takes:eventid, token
+       takes:	eventid, token
        returns: "yes" or "no" #true and false won't pass 
        access: host of the event
 
 method get_guests:
-takes:eventid, token
+       takes:	eventid, token
        returns: guests (json array of guestid => guest)
        access: anyone invited or hosting this event
 
 method add_guests:
-takes:eventid, token, guestids (delimited with ",")
+       takes:	eventid, token, guestids (delimited with ",")
        returns: "yes" or "no"
        access: host
 
 method remove_guests:
-takes:eventid, token, guestids (delimited with ",")
+       takes:	eventid, token, guestids (delimited with ",")
        returns: "yes" or "no"
        access: host
 
@@ -192,3 +201,5 @@ method update_response:
        takes:   eventid, response, token
        returns: "yes" or "no"
        access: user (guest with the token)
+</pre></body>
+</html>

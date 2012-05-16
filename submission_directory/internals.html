@@ -20,6 +20,6 @@
 <p>Apache looks in /var/www/glue for all relevant files. The back-end code is located at /var/www/glue/glue.py and all data is stored in three json flat files: /var/www/glue/events.json, /var/www/glue/users.json, and /var/www/glue/auth.json. /var/www/glue/API documents all the public methods available to clients, the parameters they take, what they return, and what side-effects they have on the server state.</p>
 <p>The server-side code is written in Python using the Bottle microframework, which essentially allows us to write functions to handle every supported request by attaching functions to routes. We also use Bottle to access GET parameters. For documentation and instructions on how to install Bottle, check <a href="http://bottlepy.org/docs/dev/tutorial.html">this</a> out.</p>
 <p>Since all data is stored in flat files as json objects, the "database" is quite literally a dictionary of id to object mappings, so any user can be accessed by users[userid] where users = json.loads(open('users.json', 'r').read()). Helper functions for _like(a, b) and _starts_with(a, b) exist if you ever need to perform SQL-like queries as in the search_users method.</p>
-<p>[<a href="API2.html">API documentation</a>] [Link to a document about authentication]</p>
+<p>[<a href="API2.html">API documentation</a>]</p>
 </body>
 </html>
